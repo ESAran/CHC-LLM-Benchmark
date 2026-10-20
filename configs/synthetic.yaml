@@ -1,0 +1,22 @@
+version: 1
+experiment:
+  name: foundation_synthetic
+dataset:
+  name: synthetic
+  revision: v1
+  split: synthetic
+  limit: 3
+  seed: 42
+model:
+  backend: simulated
+  name: controlled_scores
+  revision: v1
+prompt:
+  template: synthetic_multiple_choice_v1
+scoring:
+  method: simulated_scores
+metrics:
+  - accuracy
+  - normalized_entropy
+output:
+  directory: outputs
