@@ -1,6 +1,7 @@
 """Persistência exclusiva por execução e proveniência local."""
 
 from dataclasses import asdict
+import hashlib
 from importlib.metadata import PackageNotFoundError, version
 import json
 import os
@@ -21,6 +22,10 @@ def code_metadata() -> dict[str, object]:
     source_root = Path(__file__).resolve().parents[2]
     result: dict[str, object] = {
         "package_version": __version__, "commit": None, "dirty": None,
+    }
+    result["source_sha256"] = {
+        str(path.relative_to(source_root)): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in sorted(Path(__file__).parent.rglob("*.py"))
     }
     if not (source_root / ".git").exists():
         return result

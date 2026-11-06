@@ -20,3 +20,7 @@ class SimulatedBackend:
 
     def close(self) -> None:
         self.loaded = False
+
+    def metadata(self) -> dict:
+        return {"score_rule": "score[i] = float(i) in the default simulated backend",
+                "chat_template": None}

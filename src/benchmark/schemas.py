@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, replace
 from datetime import datetime
-from math import isclose
+from math import fsum, isclose
 import re
 from typing import Sequence
 
@@ -40,6 +40,47 @@ class Question:
 
 
 @dataclass(frozen=True)
+class TokenizationEvidence:
+    input_ids: tuple[int, ...]
+    candidate_token_ids: tuple[int, ...]
+    position: int
+    vocabulary_size: int
+    inference_dtype: str
+    forward_mode: str = "full_no_kv_cache"
+    normalization_dtype: str = "float32_to_python_float64"
+
+    def __post_init__(self) -> None:
+        if type(self.vocabulary_size) is not int or self.vocabulary_size < 4:
+            raise ValueError("Vocabulário inválido.")
+        for ids in (self.input_ids, self.candidate_token_ids):
+            if (not isinstance(ids, tuple) or not ids or
+                    any(type(i) is not int or not 0 <= i < self.vocabulary_size for i in ids)):
+                raise ValueError("IDs devem ser tuplas de índices válidos no vocabulário.")
+        if len(self.candidate_token_ids) != 4 or len(set(self.candidate_token_ids)) != 4:
+            raise ValueError("Exigem-se quatro tokens candidatos distintos.")
+        if type(self.position) is not int or self.position != len(self.input_ids) - 1:
+            raise ValueError("A posição deve prever o próximo token: T-1.")
+        if (not _text(self.inference_dtype) or self.forward_mode != "full_no_kv_cache"
+                or self.normalization_dtype != "float32_to_python_float64"):
+            raise ValueError("Caminho/precisão de inferência incompatível com o protocolo.")
+
+
+@dataclass(frozen=True)
+class NextTokenOutput:
+    vocabulary_logits: tuple[float, ...]
+    tokenization: TokenizationEvidence
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.tokenization, TokenizationEvidence):
+            raise ValueError("Evidência de tokenização obrigatória.")
+        replace(self.tokenization)
+        if (not isinstance(self.vocabulary_logits, tuple)
+                or len(self.vocabulary_logits) != self.tokenization.vocabulary_size
+                or any(not is_finite_number(x) for x in self.vocabulary_logits)):
+            raise ValueError("Logits devem cobrir o vocabulário e ser finitos.")
+
+
+@dataclass(frozen=True)
 class ScoringResult:
     labels: tuple[str, ...]
     raw_scores: tuple[float, ...]
@@ -51,6 +92,8 @@ class ScoringResult:
     tie_break: str = "lowest_index"
     tokenization_diagnostic: str = "not_applicable_simulation"
     original_label_probability_mass: float | None = None
+    original_label_probabilities: tuple[float, ...] | None = None
+    tokenization: TokenizationEvidence | None = None
 
     def __post_init__(self) -> None:
         if any(not isinstance(value, tuple) for value in (
@@ -69,15 +112,31 @@ class ScoringResult:
         expected = predicted_index(self.probabilities)
         if type(self.predicted_index) is not int or self.predicted_index != expected:
             raise ValueError("Predição deve respeitar argmax e desempate pelo menor índice.")
-        if (
-            self.method != "simulated_scores"
-            or self.score_unit != "synthetic_logits"
-            or self.normalization != "softmax_over_choices"
-            or self.tie_break != "lowest_index"
-            or self.tokenization_diagnostic != "not_applicable_simulation"
-            or self.original_label_probability_mass is not None
-        ):
-            raise ValueError("Método, unidade e diagnósticos devem descrever a simulação suportada.")
+        if self.normalization != "softmax_over_choices" or self.tie_break != "lowest_index":
+            raise ValueError("Normalização/desempate incompatíveis.")
+        if self.method == "simulated_scores":
+            if (self.score_unit != "synthetic_logits"
+                    or self.tokenization_diagnostic != "not_applicable_simulation"
+                    or self.original_label_probability_mass is not None
+                    or self.original_label_probabilities is not None or self.tokenization is not None):
+                raise ValueError("A simulação não fornece evidência de tokens ou massa original.")
+        elif self.method == "label_next_token":
+            if (self.labels != tuple("ABCD") or self.score_unit != "logits"
+                    or self.tokenization_diagnostic != "contextual_single_token_validated"
+                    or not isinstance(self.tokenization, TokenizationEvidence)):
+                raise ValueError("label_next_token exige A–D e evidência contextual válida.")
+            replace(self.tokenization)
+            mass, original = self.original_label_probability_mass, self.original_label_probabilities
+            if (not is_finite_number(mass) or not 0 <= mass <= 1
+                    or not isinstance(original, tuple) or len(original) != 4
+                    or any(not is_finite_number(p) or not 0 <= p <= 1 for p in original)
+                    or not isclose(fsum(original), mass, rel_tol=0, abs_tol=1e-12)):
+                raise ValueError("Massa e probabilidades originais incompatíveis.")
+            if mass > 0 and any(not isclose(p / mass, q, rel_tol=0, abs_tol=1e-12)
+                                for p, q in zip(original, self.probabilities, strict=True)):
+                raise ValueError("Distribuições original e condicionada incompatíveis.")
+        else:
+            raise ValueError("Método de pontuação não suportado.")
 
 
 @dataclass(frozen=True)
@@ -146,8 +205,14 @@ class RunMetadata:
                 raise ValueError
         except (TypeError, ValueError):
             raise ValueError("Horários devem ser ISO 8601, com fuso e fim não anterior ao início.") from None
-        if type(self.config_version) is not int or self.config_version != 1 or self.simulation is not True:
-            raise ValueError("A fundação exige configuração v1 e execução simulada.")
+        if type(self.config_version) is not int or self.config_version != 1 or type(self.simulation) is not bool:
+            raise ValueError("Exigem-se configuração v1 e indicador explícito de simulação.")
+        if not isinstance(self.model, dict):
+            raise ValueError("Metadados do modelo devem ser um dicionário.")
+        if not self.simulation and self.model.get("backend") != "mlx":
+            raise ValueError("Execução real exige backend MLX identificado.")
+        if self.simulation and self.model.get("backend", "simulated") != "simulated":
+            raise ValueError("Execução simulada não pode declarar backend real.")
         if any(type(count) is not int or count < 0 for count in (self.valid_count, self.failed_count)):
             raise ValueError("Contagens devem ser inteiros não negativos.")
         if (not isinstance(self.question_ids, tuple) or not self.question_ids

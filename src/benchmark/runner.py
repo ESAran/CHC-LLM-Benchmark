@@ -1,4 +1,4 @@
-"""Orquestração sequencial da fundação simulada."""
+"""Orquestração sequencial de backends configurados, com falhas explícitas."""
 
 from datetime import datetime, timezone
 from pathlib import Path
@@ -7,23 +7,29 @@ from uuid import uuid4
 from .backends.base import ModelBackend
 from .backends.simulated import SimulatedBackend
 from .config import RunConfig
-from .datasets import load_synthetic
+from .datasets import load_synthetic, load_controlled
 from .metrics import normalized_entropy, summarize
-from .prompts import TEMPLATE, build_prompt
+from .prompts import build_prompt
 from .schemas import EvaluationRecord, RunMetadata
 from .scoring import score_choices
 from .storage import code_metadata, environment_metadata, save_run
 
 
 def run(config: RunConfig, backend: ModelBackend | None = None) -> Path:
-    """Executa a fixture; injeção de backend existe para testar o contrato simulado."""
+    """Executa fixture controlada; injeção de backend permite testes offline."""
     started = datetime.now(timezone.utc)
     run_id = f"{started:%Y%m%dT%H%M%S%fZ}_{uuid4().hex}"
     resolved = config.to_dict()
-    questions = load_synthetic(config.limit, config.seed)
-    backend = backend if backend is not None else SimulatedBackend()
-    if "simulated_scores" not in backend.capabilities:
-        raise ValueError("A Entrega 1 exige a capacidade simulated_scores.")
+    loader = load_synthetic if config.dataset_revision == "v1" else load_controlled
+    questions = loader(config.limit, config.seed)
+    if backend is None:
+        if config.backend == "mlx":
+            from .backends.mlx import MLXBackend
+            backend = MLXBackend(config.snapshot_path, max_prompt_tokens=config.max_prompt_tokens)
+        else:
+            backend = SimulatedBackend()
+    if config.scoring_method not in backend.capabilities:
+        raise ValueError("Capacidade do backend incompatível com o método configurado.")
     if (backend.name, backend.revision) != (
         resolved["model"]["name"], resolved["model"]["revision"]
     ):
@@ -38,17 +44,19 @@ def run(config: RunConfig, backend: ModelBackend | None = None) -> Path:
         for question in questions:
             prompt = ""
             try:
-                prompt, labels = build_prompt(question)
-                scoring = score_choices(backend, prompt, labels)
+                prompt, labels = build_prompt(question, config.prompt_template)
+                if config.scoring_method == "label_next_token":
+                    prompt = backend.prepare_prompt(prompt)
+                scoring = score_choices(backend, prompt, labels, config.scoring_method)
                 record = EvaluationRecord(
-                    question, prompt, TEMPLATE, scoring,
+                    question, prompt, config.prompt_template, scoring,
                     scoring.predicted_index == question.correct_index,
                     normalized_entropy(scoring.probabilities),
                 )
             except Exception as error:
                 # Falhas por item são evidências explícitas, nunca descartes silenciosos.
                 record = EvaluationRecord(
-                    question, prompt, TEMPLATE, None, None, None,
+                    question, prompt, config.prompt_template, None, None, None,
                     error=f"{type(error).__name__}: {error}",
                 )
             records.append(record)
@@ -83,8 +91,7 @@ def run(config: RunConfig, backend: ModelBackend | None = None) -> Path:
             **resolved["model"],
             "implementation": type(backend).__name__,
             "capabilities": list(backend.capabilities),
-            "score_rule": "score[i] = float(i) in the default simulated backend",
-            "chat_template": None,
+            **backend.metadata(),
         },
         environment=environment,
         question_ids=tuple(question.id for question in questions),
@@ -92,6 +99,7 @@ def run(config: RunConfig, backend: ModelBackend | None = None) -> Path:
         failed_count=failed,
         status=status,
         close_error=close_error,
+        simulation=config.backend == "simulated",
     )
     directory = Path(config.output_directory) / run_id
     try:

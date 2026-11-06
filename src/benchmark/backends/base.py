@@ -1,6 +1,7 @@
-"""Contrato mínimo da fundação, sem prometer acesso a tokens ou logits reais."""
+"""Contratos de ciclo de vida e capacidades independentes da biblioteca de inferência."""
 
 from typing import Protocol
+from ..schemas import NextTokenOutput
 
 
 class ModelBackend(Protocol):
@@ -9,7 +10,14 @@ class ModelBackend(Protocol):
     capabilities: tuple[str, ...]
 
     def load(self) -> None: ...
+    def close(self) -> None: ...
+    def metadata(self) -> dict: ...
 
+
+class SimulatedScoresBackend(ModelBackend, Protocol):
     def score(self, prompt: str, labels: tuple[str, ...]) -> tuple[float, ...]: ...
 
-    def close(self) -> None: ...
+
+class NextTokenBackend(ModelBackend, Protocol):
+    def prepare_prompt(self, user_prompt: str) -> str: ...
+    def next_token_logits(self, prompt: str, labels: tuple[str, ...]) -> NextTokenOutput: ...

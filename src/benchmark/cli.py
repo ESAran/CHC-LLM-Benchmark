@@ -12,7 +12,7 @@ from .runner import run
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Benchmark — execução sintética offline")
+    parser = argparse.ArgumentParser(description="Benchmark — execução local controlada")
     parser.add_argument("--config", type=Path, required=True, help="Arquivo YAML da execução")
     args = parser.parse_args(argv)
     try:
@@ -24,7 +24,8 @@ def main(argv: list[str] | None = None) -> int:
         for note in getattr(error, "__notes__", ()):
             print(note, file=sys.stderr)
         return 2
-    print(f"Simulação salva em: {directory}")
+    kind = "Simulação" if metadata["simulation"] else "Avaliação real"
+    print(f"{kind} salva em: {directory}")
     print(json.dumps(summary, ensure_ascii=False, allow_nan=False))
     if metadata["close_error"] is not None:
         print(f"Falha no encerramento do backend: {metadata['close_error']}", file=sys.stderr)

@@ -221,6 +221,50 @@ O teste técnico de MLX deve produzir documentação suficiente sobre:
 
 A decisão de prosseguir com `label_next_token` depende dos resultados desse diagnóstico.
 
+### 6.4 Protocolo provisório aprovado para 2B — 2026-11-06
+
+O responsável aprovou explicitamente a [comparação de prompts](reports/PROMPT_COMPARISON.md)
+e autorizou a integração ao Runner. Após revisar as evidências, aprovou
+tecnicamente a Entrega 2B em 2026-11-06; o piloto MMLU ainda requer autorização.
+
+- Modelo: `mlx-community/Qwen2.5-0.5B-Instruct-bf16`, revisão
+  `56d07e766edd7159fbe12ed12d9cf114bf38bf1e`, snapshot local e hashes conferidos.
+- Texto `current-no-enumeration` preservado no template versionado
+  `current-no-enumeration-v1` de `prompts.py`; seleção em configuração, fora do backend.
+- Chat template padrão do snapshot, incluindo sistema padrão e cabeçalho de geração;
+  zero-shot, sem espaço adicional depois do cabeçalho.
+- `label_next_token`: rótulos `A`, `B`, `C`, `D`, validação contextual por item,
+  exatamente um token distinto e não especial por continuação, prefixo preservado.
+- Batch 1, `model.eval()`, logits `[0, T-1, :]`, forward completo sem KV cache.
+  Promover a float32 e converter a float Python antes da normalização existente.
+  Caminhos com e sem cache podem produzir logits/argmax globais diferentes em BF16;
+  não intercambiar seus resultados sem decisão e validação novas.
+- Persistir massa/probabilidades originais no vocabulário e probabilidades
+  condicionadas às alternativas, sem misturar os dois significados.
+
+O contrato `ModelBackend` cobre ciclo de vida, identidade e metadados.
+`SimulatedScoresBackend` conserva `score`; `NextTokenBackend` expõe
+`prepare_prompt` e `next_token_logits`. `NextTokenOutput` transporta o vetor
+transitório do vocabulário e `TokenizationEvidence`, sem métricas. O scoring
+reutiliza o mesmo softmax no vocabulário e entre candidatos; os registros guardam
+apenas os escores e probabilidades relevantes, com IDs, posição e dtype.
+O schema distingue simulação de inferência real e valida consistência das duas
+distribuições quando a massa é positiva. Massa zero por underflow é representável,
+sem inventar precisão inexistente; os casos reais observados tiveram massa positiva.
+
+A configuração de 2B usa fixture `synthetic/controlled-v1` e permanece zero-shot;
+ela não implementa MMLU. O limite operacional explícito é até 1024 tokens de
+entrada, recusando excessos sem truncar. MLX é importado somente ao carregar o
+backend; o núcleo e os testes offline não dependem de Metal. O manifesto inicial
+aceita apenas o snapshot aprovado. Resultados guardam hashes dos fontes Python
+para identificar mudanças locais além do commit/estado dirty, hashes do snapshot
+e versões das bibliotecas de inferência. `metadata.json` continua sendo o sinal
+final de persistência completa.
+
+Implementação e evidências: [validação 2B](reports/VALIDATION_DELIVERY_2B.md).
+A aprovação explícita de 2B está registrada no roadmap; ela não autoriza
+automaticamente o futuro piloto científico.
+
 ## 7. Métricas
 
 ### 7.1 Probabilidades condicionadas às alternativas
@@ -399,10 +443,7 @@ Avaliar a ampliação da amostra, variantes do Qwen, outro dataset, novos backen
 
 ## 12. Decisões ainda abertas
 
-- Modelo/revisão exatos e possível uso de quantização no hardware de referência.
-- Detalhes do prompt, chat template e marcadores que delimitam a resposta.
-- Validação dos rótulos como tokens únicos **no contexto final**.
-- Forma de acesso aos logits e possível registro da massa de probabilidade original dos rótulos.
+- Extensões ao protocolo provisório da seção 6.4: outros modelos, revisões, quantização, templates ou caminhos de inferência. A configuração inicial e a integração de 2B já foram aprovadas tecnicamente; extensões exigem nova revisão.
 - Estratégia de comparação de experimentos com prompts, scoring ou precisão numérica distintos.
 - Regras de exclusão/falha, estatísticas adicionais e amostra final da pesquisa.
 - Inclusão futura de WinoGrande e justificativa das relações exploratórias com CHC.

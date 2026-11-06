@@ -1,0 +1,24 @@
+version: 1
+experiment:
+  name: delivery_2b_controlled
+dataset:
+  name: synthetic
+  revision: controlled-v1
+  split: synthetic
+  limit: 16
+  seed: 42
+model:
+  backend: mlx
+  name: mlx-community/Qwen2.5-0.5B-Instruct-bf16
+  revision: 56d07e766edd7159fbe12ed12d9cf114bf38bf1e
+  snapshot_path: .cache/mlx-diagnostic/huggingface/hub/models--mlx-community--Qwen2.5-0.5B-Instruct-bf16/snapshots/56d07e766edd7159fbe12ed12d9cf114bf38bf1e
+  max_prompt_tokens: 1024
+prompt:
+  template: current-no-enumeration-v1
+scoring:
+  method: label_next_token
+metrics:
+- accuracy
+- normalized_entropy
+output:
+  directory: outputs

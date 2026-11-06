@@ -1,6 +1,6 @@
 # LLM Benchmark — Desempenho e Incerteza
 
-> **Estado:** Entrega 1 — Fundação concluída e aprovada tecnicamente pelo responsável em 2026-11-06, com correções F1/F2/F3 verificadas e evidências de 54 testes. Consulte o [relatório de validação final](docs/VALIDATION_DELIVERY_1_FINAL.md) e o [roadmap](docs/ROADMAP.md). A próxima etapa é a integração e o diagnóstico MLX-LM, ainda não iniciada; a inferência real e o método de pontuação ainda exigem validação técnica.
+> **Estado:** Entrega 1 concluída e aprovada. A comparação de prompts de 2A foi aprovada em 2026-11-06; a Entrega 2B integra MLX ao Runner com protocolo provisório, 71 testes offline e execução real controlada. **Entrega 2 concluída: 2B aprovada tecnicamente em 2026-11-06. Entrega 3 não iniciada.** Veja a [validação 2B](docs/reports/VALIDATION_DELIVERY_2B.md) e o [roadmap](docs/ROADMAP.md).
 
 ## Visão geral
 
@@ -193,7 +193,7 @@ As regressões de F1/F2/F3 também cobrem abertura, escrita parcial, flush,
 fechamento, sincronização e publicação dos arquivos, encerramento do backend,
 erros combinados e inconsistências entre contratos.
 
-### Convenções e limites desta entrega
+### Convenções e limites da simulação
 
 - A configuração rejeita campos desconhecidos, ausentes, chaves YAML duplicadas
   e valores que ativariam funcionalidades posteriores. O limite da fixture é de
@@ -228,10 +228,78 @@ erros combinados e inconsistências entre contratos.
   após queda de energia ou interrupção abrupta do processo. Falhas que impeçam
   a própria escrita são reportadas como erros, sem prometer persistência.
 
-Não foram implementados MLX, Transformers, APIs, adaptação do MMLU, diagnóstico
-de tokens ou pontuação de sequências. A massa original dos rótulos no vocabulário
-permanece nula, pois a simulação não fornece essa evidência. A Entrega 1 valida
+Na Entrega 1 não havia backend real. A integração MLX da Entrega 2B está descrita
+abaixo; Transformers, APIs, adaptação do MMLU e pontuação de sequências continuam fora do escopo. Na simulação, a massa original dos rótulos no vocabulário
+permanece nula, pois o backend simulado não fornece essa evidência. A Entrega 1 valida
 apenas contratos, matemática e fluxo; **o MVP com modelo real ainda não está validado**.
+
+### Diagnóstico isolado da Entrega 2A
+
+O script [`diagnostics/mlx_labels.py`](diagnostics/mlx_labels.py) executa a investigação
+de MLX-LM em ambiente separado, com dependências fixadas em
+[`diagnostics/mlx-requirements.txt`](diagnostics/mlx-requirements.txt). Não altera o
+runner ou a configuração sintética. Procedimento, revisão do modelo, comandos,
+resultados e limitações estão no [relatório de diagnóstico](docs/reports/MLX_DIAGNOSTIC.md).
+Rótulos sem espaço foram viáveis no template testado; fronteiras de tokenização,
+precisão BF16 e diferenças entre caminhos com/sem cache exigem tratamento explícito.
+O protocolo inicial e o início de 2B foram aprovados pelo responsável em 2026-11-06;
+a implementação descrita abaixo foi aprovada tecnicamente no fechamento da Entrega 2.
+
+A [investigação comportamental complementar](docs/reports/MLX_BEHAVIOR_VALIDATION.md)
+compara quatro perguntas, rotações de alternativas e instruções explícitas por
+meio de `diagnostics/mlx_labels.py --behavior`. As variantes são diagnósticas;
+naquele diagnóstico não houve adoção definitiva. A comparação posterior fundamentou
+a aprovação explícita do protocolo provisório usado em 2B.
+
+### Entrega 2B — execução real local, concluída e aprovada
+
+O Runner seleciona o backend por `model.backend`. A configuração
+[`configs/controlled_mlx.yaml`](configs/controlled_mlx.yaml) usa 16 apresentações
+controladas (quatro questões × quatro rotações), sem MMLU. O template configurável
+`current-no-enumeration-v1` preserva exatamente o texto aprovado em
+[2A](docs/reports/PROMPT_COMPARISON.md); o backend aplica somente o chat template
+do snapshot, sem conhecer a pergunta, o gabarito ou a instrução de múltipla escolha.
+
+O protocolo provisório é zero-shot, candidatos `A`–`D` sem espaços, posição `T-1`,
+batch 1 e forward completo **sem KV cache**. Logits BF16 são promovidos a float32
+e convertidos a floats Python antes do softmax compartilhado. São persistidos
+os escores, probabilidades condicionais, probabilidades originais, massa válida,
+IDs contextuais, posição, precisão, revisão, hashes e template efetivo.
+**Cache e forward completo podem produzir logits diferentes**; não são
+intercambiáveis neste protocolo.
+
+MLX é opcional: a instalação básica e os testes offline continuam exigindo apenas
+as dependências da fundação. No Apple Silicon, use um ambiente separado com
+as versões de [`diagnostics/mlx-requirements.txt`](diagnostics/mlx-requirements.txt).
+A configuração exige um snapshot **já disponível localmente**; não baixa pesos.
+O manifesto em `backends/mlx.py` verifica os arquivos do snapshot aprovado.
+O limite configurável de entrada é de até 1024 tokens nesta etapa, com erro
+explícito em vez de truncamento. Não foram validados prompts longos.
+
+Com o ambiente MLX de 2A disponível, execute na raiz:
+
+```sh
+HF_HUB_OFFLINE=1 PYTHONPATH=src \
+.cache/mlx-diagnostic/venv/bin/python -m benchmark.cli --config configs/controlled_mlx.yaml
+```
+
+A validação desta entrega reutilizou o ambiente temporário de 2A e o mesmo
+snapshot em `.cache/`; o comando exato está no relatório. `snapshot_path` e
+`output.directory` são relativos ao diretório de trabalho quando não absolutos.
+Use caminhos relativos em configurações compartilhadas, sem dados pessoais.
+
+O backend inicial aceita apenas o snapshot Qwen aprovado. Novos modelos exigem
+manifesto e validação próprios. Templates são selecionados pela configuração e
+implementados em `prompts.py`, separados do backend; adicionar um template não
+altera a inferência, mas uma nova convenção experimental requer aprovação.
+Erros de resposta do modelo são registros válidos com `correct: false`; falhas de
+execução/tokenização são erros explícitos com métricas ausentes. As regras de
+persistência e encerramento da fundação continuam aplicadas.
+
+Resultado controlado verificado: **16 válidas, 0 falhas operacionais, 11/16 acertos**;
+não é um score MMLU nem evidência científica de generalização. Os 71 testes
+incluem os 54 da fundação e 17 novos testes offline; veja
+[VALIDATION_DELIVERY_2B.md](docs/reports/VALIDATION_DELIVERY_2B.md).
 
 ## Reprodutibilidade e transparência
 
@@ -258,6 +326,8 @@ Pesos dos modelos, caches, credenciais e resultados volumosos não devem ser env
 
 - **Metodologia estabelecida:** múltipla escolha, acurácia por alternativa de maior probabilidade e entropia normalizada entre alternativas.
 - **Plano técnico inicial:** Python, MLX-LM local, MMLU e um Qwen2.5 pequeno.
-- **Pendente de validação:** tokenização dos rótulos, posição de pontuação, uso de template de chat, extração e normalização dos escores, consumo de memória e critérios de aceitação.
+- **Protocolo provisório aprovado para 2B:** prompt sem enumeração, chat template do snapshot, zero-shot, rótulos nus e forward completo sem cache.
+- **Concluído:** aceite técnico da integração 2B em 2026-11-06, com 71 testes novamente aprovados.
+- **Pendente:** autorização específica para iniciar a Entrega 3 — piloto MMLU.
 
 Consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) antes de alterar contratos, pontuação ou fórmulas.

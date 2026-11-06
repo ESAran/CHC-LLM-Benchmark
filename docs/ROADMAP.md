@@ -2,7 +2,7 @@
 
 > **Documento vivo:** este arquivo acompanha a implementação e a validação do benchmark. Deve ser atualizado à medida que o projeto evoluir, sem transformar planos ou resultados não verificados em fatos.
 >
-> **Última atualização:** 2026-11-06 — Entrega 1 aprovada tecnicamente pelo responsável e concluída; suíte reexecutada com 54 testes passando. Entrega 2 registrada como próxima etapa, ainda não iniciada.
+> **Última atualização:** 2026-11-06 — Entrega 2 (2A e 2B) concluída após aprovação técnica explícita do responsável. Suíte reexecutada: 71 testes aprovados. Entrega 3 permanece pendente e não autorizada; fechamento somente em commit local, sem push ou merge.
 
 ## 1. Objetivo
 
@@ -14,11 +14,22 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 
 ## 2. Estado atual
 
-**Fase atual:** Entrega 1 — Fundação **concluída**, com aprovação técnica explícita do responsável em 2026-11-06 após revisão do relatório de validação.
+**Fase atual:** Entrega 2 — Integração e diagnóstico MLX-LM **concluída**,
+com aprovação técnica explícita da Entrega 2B em 2026-11-06. Entrega 1 permanece
+concluída e aprovada.
 
-**Próxima etapa:** Entrega 2 — Integração e diagnóstico MLX-LM, a iniciar somente mediante nova autorização. O [relatório de validação final](VALIDATION_DELIVERY_1_FINAL.md) e o [relatório anterior](reports/VALIDATION_DELIVERY_1.md) permanecem como evidências históricas; suas menções a aprovação pendente descrevem a situação em 2026-10-20.
+**Próxima etapa:** Entrega 3 — Piloto MMLU, ainda não iniciada. Aguardar autorização
+específica antes de implementar o adaptador ou executar o piloto.
 
-**Condição para avançar:** aprovação da fundação obtida; aguardar autorização para implementar a próxima entrega. A Entrega 2 permanece não iniciada. O registro de conclusão será versionado somente localmente, sem envio ao remoto nesta tarefa.
+**Evidências do aceite:** [relatório 2B](reports/VALIDATION_DELIVERY_2B.md),
+[registros auditáveis](reports/VALIDATION_DELIVERY_2B_EVIDENCE.json), 71 testes
+novamente aprovados e duas execuções reais controladas já verificadas. Os relatórios
+e o histórico preservam o estado no momento de cada validação; menções anteriores
+a aprovação pendente foram superadas pelo aceite explícito registrado neste fechamento.
+
+**Limite da autorização atual:** conclusão e commit local da Entrega 2, sem push,
+merge ou implementação da Entrega 3. O protocolo técnico continua provisório para
+as avaliações futuras, sem alterações metodológicas adicionais.
 
 ### Legenda de status
 
@@ -120,15 +131,89 @@ reprodutibilidade e de simulação das falhas.
 
 ### Entrega 2 — Integração e diagnóstico MLX-LM
 
-**Status:** Próxima etapa — pendente, não iniciada; aguarda autorização de implementação.
+**Status:** Concluída — 2A (diagnóstico) e 2B (integração ao Runner) aprovadas tecnicamente; aceite explícito de 2B em 2026-11-06. O protocolo aprovado e suas limitações permanecem documentados.
 
-- [ ] Confirmar versões do ambiente e compatibilidade com Apple M2 / 8 GB de memória unificada.
-- [ ] Carregar e executar localmente um modelo pequeno candidato (Qwen2.5-0.5B-Instruct, variante MLX a confirmar).
-- [ ] Inspecionar prompt final, template de chat, tokenização de `A`, `B`, `C`, `D` e variantes com espaço.
-- [ ] Identificar a posição correta dos logits e verificar correspondência entre tokens e alternativas.
-- [ ] Validar numericamente a pontuação por rótulos e o softmax condicionado às alternativas; registrar diagnósticos e eventuais limitações.
-- [ ] Medir/observar consumo de memória e registrar modelo, revisão e dependências.
-- [ ] Definir se `label_next_token` está aprovado para o piloto ou exige reformulação metodológica.
+- [x] Confirmar versões do ambiente e compatibilidade com Apple M2 / 8 GB: Python 3.12.2 arm64, macOS 15.7.4, MLX 0.32.4 e MLX-LM 0.32.2 executados.
+- [x] Carregar e executar `mlx-community/Qwen2.5-0.5B-Instruct-bf16`, revisão `56d07e766edd7159fbe12ed12d9cf114bf38bf1e`; inferência simples retornou `OK`.
+- [x] Inspecionar prompt final, template de chat e variantes de rótulos: 160 combinações contextuais por rodada, com detecção de retokenização na fronteira.
+- [x] Identificar a posição `T-1` dos logits e verificar correspondência; controle na posição anterior, comparação com geração e cache manual registrados.
+- [x] Conferir softmax condicional e massa original contra NumPy float64; documentar diferenças BF16, efeitos do cache e limites do prompt testado.
+- [x] Medir memória e registrar revisão/dependências: pico MLX observado de aproximadamente 1,05 GiB, com swap global preexistente e limitações descritas.
+- [x] Aprovar provisoriamente `label_next_token` para a integração 2B: autorização explícita em 2026-11-06, com prompt sem enumeração e forward completo. O aceite técnico de 2B foi concedido; o piloto MMLU depende de autorização própria.
+
+#### Entrega 2A — Diagnóstico técnico isolado
+
+**Estado:** concluída; diagnóstico executado, comparação e protocolo inicial aprovados pelo
+responsável em 2026-11-06 para iniciar 2B. Evidências
+em [`docs/reports/MLX_DIAGNOSTIC.md`](reports/MLX_DIAGNOSTIC.md); script em
+`diagnostics/mlx_labels.py`, dependências em `diagnostics/mlx-requirements.txt`.
+Na etapa isolada, a fundação foi preservada sem integração ao Runner; a integração
+autorizada está registrada em 2B abaixo. Não há adaptador MMLU.
+
+- Duas rodadas offline concluídas com oito contextos cada; seis pontuados e dois
+  recusados por falha de fronteira para os rótulos sem espaço. Os escores diretos
+  dos quatro rótulos repetiram exatamente entre rodadas.
+- Rótulos `A`–`D` têm IDs 32–35 no template de chat testado. Variantes com espaço
+  têm outros IDs; quebras de linha podem alterar o prefixo e não são equivalentes.
+- `chat-0`: escores `[29.25, 23.75, 23.5, 24.125]`, probabilidades condicionais
+  `[0.986956609, 0.004033466, 0.003141267, 0.005868659]` e massa original
+  `0.999300616166` (valores arredondados para exibição).
+- Limites: `logprobs` BF16 da geração não normalizam exatamente; passagem com
+  cache difere numericamente da passagem direta; o modelo respondeu `A` nas
+  quatro rotações da pergunta, o que não valida qualidade de raciocínio.
+- `PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -q` → **54 testes,
+  OK, 17,873 s, saída 0**. Segunda execução com `-v` e cache de bytecode separado:
+  **54 testes, OK, 0,625 s, saída 0**. `pip check` do ambiente isolado sem conflitos.
+- Recomendação técnica: viável no contexto verificado, com precisão promovida,
+  convenção de rótulos fixa e validação contextual obrigatória. Não constitui
+  aprovação automática do método para o piloto.
+
+**Investigação complementar de 2A (2026-11-06):** executada e incorporada ao diagnóstico aprovado;
+ver [MLX_BEHAVIOR_VALIDATION.md](reports/MLX_BEHAVIOR_VALIDATION.md) e suas evidências.
+Foram 64 condições (4 perguntas × 4 rotações × 4 instruções), mais 8 controles.
+Com a instrução original, A venceu em 13/16 casos, e a remoção da enumeração final
+produziu 13/16 vencedores corretos (contra 6/16 originais). Geração e argmax
+concordaram no primeiro token em 64/64 casos; índices, tokenização e cache/API
+foram conferidos. A aritmética continuou problemática; a variante semântica gerou
+9/16 saídas fora do formato estrito. Não foi adotada nenhuma mudança definitiva
+de prompt ou correção artificial. Os 54 testes da fundação passaram (3,891 s).
+As hipóteses fundamentaram a comparação posterior e a aprovação explícita do
+protocolo inicial de 2B, sem correções artificiais do comportamento do modelo.
+
+**Comparação de formatos de prompt (2026-11-06):** executada e aprovada pelo responsável;
+ver [relatório](reports/PROMPT_COMPARISON.md) e
+[evidências por caso](reports/PROMPT_COMPARISON_EVIDENCE.json). Quatro perguntas
+novas × quatro rotações × três formatos, com modelo/revisão e pontuação fixos.
+Prompt atual sem enumeração: 11/16; referências Harness e LightEval adaptadas:
+10/16 cada. Tokenização contextual validada nos 48 casos; estratégias com/sem
+espaço separadas. Caminhos BF16 com e sem cache diferiram, sem mudar o vencedor
+entre A–D, mas com duas diferenças de argmax global. 54 testes passaram (2,618 s).
+Nenhum prompt foi escolhido automaticamente. Após revisão, o responsável aprovou
+explicitamente `current-no-enumeration`, rótulos nus e forward completo para 2B.
+
+#### Entrega 2B — Backend MLX
+
+**Estado:** **concluída e aprovada tecnicamente** pelo responsável em 2026-11-06,
+com base no relatório e no JSON de evidências. Implementação e resultados
+validados preservados; suíte reexecutada neste fechamento.
+
+- [x] Integrar backend MLX local ao Runner e seleção por configuração, preservando a simulação.
+- [x] Preservar texto aprovado em `current-no-enumeration-v1`, chat template padrão, zero-shot e A–D sem espaços.
+- [x] Validar prefixo contextual, token unitário/distinto/não especial, posição T-1 e forward completo sem KV cache.
+- [x] Reutilizar softmax/métricas existentes com precisão promovida; persistir massa e probabilidades originais, condicionais e diagnósticos.
+- [x] Registrar snapshot/revisão/hashes, template, versões, configuração e hashes dos fontes locais.
+- [x] Executar 71 testes offline (54 existentes + 17 novos), todos aprovados; regressões de encerramento, configuração e registros inconsistentes incluídas.
+- [x] Executar simulação (3 válidas, 0 falhas) e duas avaliações reais de 16 apresentações pelo Runner (11 acertos, 5 erros legítimos, 0 falhas operacionais).
+- [x] Auditar igualdade exata de prompts/IDs/logits/probabilidades condicionais com 2A; os dois JSONL reais são idênticos. Pico MLX de 1.125.887.928 bytes; snapshot reutilizado, nenhum download.
+- [x] Receber revisão e aprovação técnica explícita da Entrega 2B pelo responsável em 2026-11-06.
+- [x] Reexecutar a suíte no fechamento: 71 testes, `OK`, 0,883 s, saída 0; revisar alterações de 2A/2B e exclusões do Git.
+
+Evidências em [VALIDATION_DELIVERY_2B.md](reports/VALIDATION_DELIVERY_2B.md) e
+[JSON auditável](reports/VALIDATION_DELIVERY_2B_EVIDENCE.json). A configuração
+`configs/controlled_mlx.yaml` usa somente fixture sintética controlada. O adaptador
+MMLU permanece na Entrega 3, não iniciada. Limites: snapshot único aprovado,
+entrada até 1024 tokens sem truncamento, batch 1 e caminho completo fixo;
+cache pode alterar logits em BF16. Fechamento autorizado em commit local; sem push ou merge.
 
 **Critério de conclusão:** procedimento de pontuação tecnicamente demonstrado e documentado, sem aproximações silenciosas na tokenização. **Não avançar ao piloto se a estratégia de pontuação permanecer inválida ou indeterminada.**
 
@@ -162,14 +247,14 @@ reprodutibilidade e de simulação das falhas.
 | Tema | Estado atual | Observação |
 | --- | --- | --- |
 | Métricas iniciais | Definido | Acurácia e entropia normalizada entre alternativas; sem índice composto. |
-| Arquitetura | Aderência verificada na fundação | Responsabilidades separadas; contratos de inferência real continuam pendentes. |
+| Arquitetura | Fundação e integração 2B aprovadas | Responsabilidades separadas; contratos de inferência real implementados e testados. |
 | Primeiro dataset | Planejado | MMLU, inicialmente `validation`. |
-| Primeiro backend | Planejado | MLX-LM local; Transformers/servidor ficam para evolução. |
-| Primeiro modelo | Candidato | Qwen2.5-0.5B-Instruct compatível com MLX-LM; variante exata a validar. |
-| Pontuação por rótulos | **Em aberto** | Requer diagnóstico de tokenização, prompt e logits. |
+| Primeiro backend | Integração 2B concluída e aprovada | MLX local pelo Runner, com 71 testes offline e duas avaliações controladas. |
+| Primeiro modelo | Executado em diagnóstico | `mlx-community/Qwen2.5-0.5B-Instruct-bf16`, revisão registrada no relatório; sem piloto científico. |
+| Pontuação por rótulos | Protocolo provisório aprovado para 2B | A–D sem espaços, template aprovado e forward completo; integração aceita tecnicamente. |
 | Tamanho da amostra do piloto | Proposto | Até 20 questões, não é tamanho definitivo do experimento científico. |
 | Resultados por execução | Fluxo nominal e regressões verificados | Publicação de metadados ao final; erro de encerramento não descarta registros calculados. |
-| Aceite da fundação | Concluído em 2026-11-06 | Aprovação técnica explícita após revisão do relatório; 54 testes novamente aprovados. Entrega 2 é a próxima etapa, ainda não iniciada. |
+| Aceite da fundação | Concluído em 2026-11-06 | Aprovação técnica explícita; 54 testes continuam passando durante 2A. |
 
 ## 5. Como manter este roadmap atualizado
 
@@ -197,6 +282,19 @@ Após **cada alteração relevante** de código, teste, integração ou decisão
 
 > Novas entradas devem acrescentar **evidência objetiva**: comando e saída de testes, arquivo alterado, identificador de commit, ID da execução ou referência a relatório. Não registrar sucesso sem evidência.
 
+**2026-11-06 — Entrega 2A:** diagnóstico autorizado executado em ambiente isolado,
+sem mudanças no núcleo. Duas execuções reais locais, tokenização contextual,
+logits, probabilidades e memória documentados no [relatório MLX](reports/MLX_DIAGNOSTIC.md).
+54 testes da fundação aprovados. Próxima ação: responsável revisar os achados e
+autorizar ou ajustar 2B. Entrega 2 não concluída; nenhum push realizado.
+
+**2026-11-06 — Investigação comportamental complementar:** modo `--behavior`
+adicionado ao diagnóstico existente, com matriz isolada, geração livre e evidência
+por caso. Relatório e JSON de evidências publicados apenas como arquivos locais;
+sem commit ou push. Execução concluída em ambiente temporário com as mesmas
+dependências fixadas após demoras de leitura no ambiente do projeto. Nenhuma
+alteração no núcleo; 2B aguarda revisão e autorização.
+
 ### Política de versionamento após a fundação
 
 Em 2026-10-20, o responsável autorizou publicar o estado atual diretamente na
@@ -205,3 +303,42 @@ com revisão e validação antes da integração à `main`, conforme registrado 
 `AGENTS.md`. A autorização de publicação não altera o status de aprovação técnica
 da Entrega 1 nem inicia a Entrega 2. As evidências anteriores de ausência de commit
 ou envio descrevem o momento de cada validação.
+
+**2026-11-06 — Comparação controlada de prompts:** referências oficiais fixadas
+por commit e Qwen2.5 consultadas; 48 casos concluídos em
+`outputs/prompt-comparison-03/diagnostic.json`. [Relatório](reports/PROMPT_COMPARISON.md)
+e JSON preservam prompts, probabilidades e controles. Ambiente temporário
+restaurado com versões fixadas após bloqueio de arquivos `dataless`; snapshot
+existente recuperado do iCloud e hash dos pesos conferido, sem novo modelo.
+54 testes da fundação aprovados; auditoria dos 48 registros e 96 vetores passou,
+assim como a comparação de 16 textos com a função oficial LightEval. Entrega 2
+permanece em andamento; 2B não iniciada.
+Próxima ação: revisão e aprovação explícita do protocolo candidato. Sem commit/push.
+
+**2026-11-06 — Entrega 2B autorizada e implementada:** comparação de prompts
+aprovada pelo responsável; protocolo provisório integrado ao Runner na branch
+`codex/feat-mlx-backend`. 71 testes passaram em 0,730 s; simulação preservada.
+Execução real final `20261106T171107979803Z_1c1baaac1d0c4cd6857cdd930d858b50`:
+16 válidas, 0 falhas, acurácia 0,6875, entropia média 0,2938674223513097.
+[Relatório](reports/VALIDATION_DELIVERY_2B.md) e evidências registram igualdade
+com 2A, repetição dos resultados, hashes e memória. Fórmulas preservadas;
+sem novos downloads, MMLU, commit ou push. **2B aguarda revisão; não concluída.**
+Próximo passo: responsável revisar e decidir o aceite antes de qualquer Entrega 3.
+
+**2026-11-06 — Conclusão e aceite da Entrega 2:** o responsável aprovou tecnicamente
+2B com base em `VALIDATION_DELIVERY_2B.md` e `VALIDATION_DELIVERY_2B_EVIDENCE.json`.
+Entrega 2 e sua etapa 2B marcadas como concluídas; README e arquitetura alinhados
+somente quanto ao status. Resultados aprovados preservados: duas execuções reais
+com 16 válidas/0 falhas, 11 acertos, acurácia 0,6875 e entropia média
+0,2938674223513097; igualdade com o diagnóstico e repetição verificadas.
+
+Comando de fechamento:
+`PYTHONPYCACHEPREFIX=/tmp/benchmark-delivery2-final-pycache PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v`
+→ **71 testes, OK, 0,883 s, saída 0**. Revisão abrangeu código/configuração/testes,
+scripts, requisitos, relatórios e JSONs de evidência de 2A e 2B ainda não
+versionados; hashes dos fontes conferem com a execução aprovada. Ambientes,
+pesos, caches e `outputs/` seguem ignorados; os JSONs de evidência em
+`docs/reports/` são artefatos de validação deliberadamente incluídos. Nenhuma
+mudança nas fórmulas, no protocolo ou na implementação durante o fechamento.
+Commit local autorizado na branch `codex/feat-mlx-backend`, sem push ou merge.
+**Próximo passo:** aguardar autorização específica para a Entrega 3, não iniciada.

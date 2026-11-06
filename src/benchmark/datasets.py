@@ -43,3 +43,24 @@ def load_synthetic(limit: int, seed: int) -> tuple[Question, ...]:
         raise ValueError("seed deve ser inteiro.")
     random.Random(seed).shuffle(questions)
     return tuple(questions[:limit])
+
+
+# Fixture de regressão de 2B: mesmos casos da comparação aprovada, sem MMLU.
+CONTROLLED_QUESTIONS = (
+    ("triangle", "How many sides does a triangle have?", ("3", "2", "4", "5"), "elementary_mathematics"),
+    ("planet", "Which planet is known as the Red Planet?", ("Mars", "Venus", "Jupiter", "Saturn"), "astronomy"),
+    ("organ", "Which organ pumps blood through the human body?", ("Heart", "Liver", "Lung", "Stomach"), "anatomy"),
+    ("meter", "How many centimeters are in one meter?", ("100", "10", "1000", "1"), "elementary_mathematics"),
+)
+
+
+def load_controlled(limit: int, seed: int) -> tuple[Question, ...]:
+    questions = [Question(f"controlled-{qid}-{rotation}", text,
+                         choices[-rotation:] + choices[:-rotation] if rotation else choices,
+                         rotation, subject)
+                 for qid, text, choices, subject in CONTROLLED_QUESTIONS
+                 for rotation in range(4)]
+    if type(limit) is not int or not 1 <= limit <= len(questions) or type(seed) is not int:
+        raise ValueError("Limite (1–16) ou seed inválido na fixture controlada.")
+    random.Random(seed).shuffle(questions)
+    return tuple(questions[:limit])

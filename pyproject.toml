@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "llm-benchmark"
 version = "0.1.0"
-description = "Fundação offline para avaliação de acurácia e incerteza entre alternativas"
+description = "Benchmark local para avaliação de acurácia e incerteza entre alternativas"
 requires-python = ">=3.11"
 dependencies = ["PyYAML>=6.0,<7"]
 
