@@ -2,7 +2,7 @@
 
 > **Documento vivo:** este arquivo acompanha a implementação e a validação do benchmark. Deve ser atualizado à medida que o projeto evoluir, sem transformar planos ou resultados não verificados em fatos.
 >
-> **Última atualização:** 2026-10-20 — nova validação técnica confirmou F1/F2/F3, 54 testes em dois modos e duas simulações; fundação aguardando revisão do relatório final e aprovação do responsável.
+> **Última atualização:** 2026-11-06 — Entrega 1 aprovada tecnicamente pelo responsável e concluída; suíte reexecutada com 54 testes passando. Entrega 2 registrada como próxima etapa, ainda não iniciada.
 
 ## 1. Objetivo
 
@@ -14,11 +14,11 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 
 ## 2. Estado atual
 
-**Fase atual:** Entrega 1 — Fundação, **revalidação técnica realizada; aguardando revisão e aprovação**. A entrega não está marcada como concluída.
+**Fase atual:** Entrega 1 — Fundação **concluída**, com aprovação técnica explícita do responsável em 2026-11-06 após revisão do relatório de validação.
 
-**Próxima ação:** o responsável revisará o [relatório de validação final](VALIDATION_DELIVERY_1_FINAL.md), suas evidências e limitações para decidir sobre o aceite da fundação. O [relatório anterior](reports/VALIDATION_DELIVERY_1.md) permanece como histórico.
+**Próxima etapa:** Entrega 2 — Integração e diagnóstico MLX-LM, a iniciar somente mediante nova autorização. O [relatório de validação final](VALIDATION_DELIVERY_1_FINAL.md) e o [relatório anterior](reports/VALIDATION_DELIVERY_1.md) permanecem como evidências históricas; suas menções a aprovação pendente descrevem a situação em 2026-10-20.
 
-**Condição para avançar:** obter aprovação explícita da fundação e autorização para a próxima entrega. A Entrega 2 permanece não iniciada.
+**Condição para avançar:** aprovação da fundação obtida; aguardar autorização para implementar a próxima entrega. A Entrega 2 permanece não iniciada. O registro de conclusão será versionado somente localmente, sem envio ao remoto nesta tarefa.
 
 ### Legenda de status
 
@@ -30,7 +30,7 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 
 ### Entrega 1 — Fundação e validação offline
 
-**Status:** Aguardando revisão técnica e aprovação — correções F1/F2/F3 e regressões novamente verificadas. Os itens marcados abaixo descrevem verificações realizadas, não uma aprovação automática da entrega.
+**Status:** Concluída — aprovação técnica explícita do responsável em 2026-11-06, correções F1/F2/F3 verificadas e suíte completa novamente aprovada.
 
 - [x] Confirmar a estrutura existente e sua aderência à arquitetura no escopo da fundação; `datasets.py` simples é permitido.
 - [x] Verificar os contratos e formatos compartilhados; invariantes de pontuação, registro e metadados reforçadas e testadas.
@@ -41,7 +41,7 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 - [x] Conferir os quatro arquivos de saída, não sobrescrita, publicação final de metadados e preservação dos resultados em falha de encerramento.
 - [x] Conferir comandos do README, corrigir links da arquitetura e registrar o estado real da revisão.
 
-**Correções verificadas e aceite pendente:**
+**Correções verificadas e aceite registrado:**
 
 - [x] F1: publicar `metadata.json` somente após todos os demais arquivos; falhas parciais deixam a pasta sem metadados finais e propagam erro.
 - [x] F2: preservar os registros após erro de `backend.close()` e registrar `close_error`; manter erros anteriores visíveis.
@@ -49,7 +49,7 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 - [x] F3: validar probabilidades contra escores, entropia contra distribuição, status/contagens/horários/proveniência e coerência do conjunto antes da escrita, reutilizando funções puras.
 - [x] Corrigir referências para `docs/ROADMAP.md`, manter `AGENTS.md` na raiz e alinhar links ao relatório em `docs/reports/`.
 - [x] Reexecutar a validação após as correções e registrar evidências, conformidade e limites em `docs/VALIDATION_DELIVERY_1_FINAL.md`.
-- [ ] Obter aprovação explícita da fundação antes de iniciar a Entrega 2.
+- [x] Obter aprovação explícita da fundação antes de iniciar a Entrega 2 — concedida pelo responsável em 2026-11-06.
 
 **Critério de conclusão:** testes necessários passando, simulação completa verificável, resultados matematicamente consistentes e limitações registradas. Se testes falharem, registrar o bloqueio e não avançar silenciosamente.
 
@@ -110,9 +110,17 @@ atual usa Python 3.12.2 no ambiente existente; instalação limpa, outras versõ
 e plataformas não foram testadas. O relatório final detalha os limites de
 reprodutibilidade e de simulação das falhas.
 
+**Evidências de conclusão em 2026-11-06:**
+
+- Aprovação técnica explícita do responsável após revisão do relatório final.
+- `PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v` → **54 testes, `OK`, 2,656 s, saída 0**, incluindo as regressões F1/F2/F3 e os testes de integração simulada. Não foi executada uma nova simulação avulsa nesta tarefa; as execuções anteriores estão identificadas acima.
+- Fundação versionada no commit `65e2dc7`; código, testes, configuração, relatórios e instruções presentes em `git ls-files`. Estado inicial limpo na `main`, alinhada à referência local `origin/main`; nenhuma consulta ou atualização remota nesta tarefa.
+- `git status --ignored --short` e `git check-ignore -v` confirmaram exclusão de `.venv/`, `outputs/`, caches, build e arquivos do sistema. Acrescentadas regras para temporários `*.tmp`, `*.swp`, `*.swo` e `*~`. `git ls-files -ci --exclude-standard` não encontrou arquivos já versionados abrangidos pelas regras de exclusão.
+- Registro de conclusão preparado na branch `codex/feat-conclusao-entrega-1`; README alinhado ao aceite. Código, testes e protocolo científico preservados. Publicação remota e implementação MLX-LM não autorizadas nesta tarefa.
+
 ### Entrega 2 — Integração e diagnóstico MLX-LM
 
-**Status:** Pendente.
+**Status:** Próxima etapa — pendente, não iniciada; aguarda autorização de implementação.
 
 - [ ] Confirmar versões do ambiente e compatibilidade com Apple M2 / 8 GB de memória unificada.
 - [ ] Carregar e executar localmente um modelo pequeno candidato (Qwen2.5-0.5B-Instruct, variante MLX a confirmar).
@@ -161,7 +169,7 @@ reprodutibilidade e de simulação das falhas.
 | Pontuação por rótulos | **Em aberto** | Requer diagnóstico de tokenização, prompt e logits. |
 | Tamanho da amostra do piloto | Proposto | Até 20 questões, não é tamanho definitivo do experimento científico. |
 | Resultados por execução | Fluxo nominal e regressões verificados | Publicação de metadados ao final; erro de encerramento não descarta registros calculados. |
-| Aceite da fundação | Aguardando aprovação | Critérios técnicos atendidos e correções verificadas; nenhuma aprovação ou avanço à Entrega 2 foi presumido. |
+| Aceite da fundação | Concluído em 2026-11-06 | Aprovação técnica explícita após revisão do relatório; 54 testes novamente aprovados. Entrega 2 é a próxima etapa, ainda não iniciada. |
 
 ## 5. Como manter este roadmap atualizado
 
@@ -185,6 +193,7 @@ Após **cada alteração relevante** de código, teste, integração ou decisão
 | 2026-10-20 | Revisão técnica da fundação; status alinhados ao código e relatório registrado. Somente documentação alterada. | 31 testes passando em cada modo; duas simulações com 3 válidas/0 falhas; recálculo independente; F1/F2 reproduzidos. Ver [relatório](reports/VALIDATION_DELIVERY_1.md). | Responsável revisar os achados e autorizar eventuais correções antes do aceite; manter Entrega 2 pendente. |
 | 2026-10-20 | Correções autorizadas de F1/F2/F3 e alinhamento documental implementados. | 54 testes passando; simulação corrigida com 3 válidas/0 falhas; detalhes na seção 7 do [relatório](reports/VALIDATION_DELIVERY_1.md). | Responsável revisar as correções e aprovar a fundação; Entrega 1 aguardando aprovação, Entrega 2 não iniciada. |
 | 2026-10-20 | Nova validação técnica após as correções; apenas documentação atualizada. | 54 testes passando em cada modo, duas novas simulações, recálculo independente e sondagens F1/F2/F3; ver [relatório final](VALIDATION_DELIVERY_1_FINAL.md). | Responsável revisar o relatório e decidir o aceite; Entrega 1 aguardando revisão e aprovação, Entrega 2 não iniciada. |
+| 2026-11-06 | Entrega 1 aprovada pelo responsável e marcada como concluída; README alinhado e exclusões de temporários reforçadas. | 54 testes, `OK`, saída 0; fundação versionada em `65e2dc7`; auditoria do índice e regras de exclusão sem artefatos gerados versionados. | Criar commit local de conclusão na branch de feature, sem push; aguardar autorização para iniciar a Entrega 2. |
 
 > Novas entradas devem acrescentar **evidência objetiva**: comando e saída de testes, arquivo alterado, identificador de commit, ID da execução ou referência a relatório. Não registrar sucesso sem evidência.
 

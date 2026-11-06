@@ -1,6 +1,6 @@
 # LLM Benchmark — Desempenho e Incerteza
 
-> **Estado:** Entrega 1 — Fundação com correções F1/F2/F3 implementadas e 54 testes passando sobre o código-fonte e o pacote instalado; aguardando aprovação do responsável. Consulte o [relatório de validação](docs/reports/VALIDATION_DELIVERY_1.md) e o [roadmap](docs/ROADMAP.md). A inferência real e o método de pontuação ainda exigem validação técnica.
+> **Estado:** Entrega 1 — Fundação concluída e aprovada tecnicamente pelo responsável em 2026-11-06, com correções F1/F2/F3 verificadas e evidências de 54 testes. Consulte o [relatório de validação final](docs/VALIDATION_DELIVERY_1_FINAL.md) e o [roadmap](docs/ROADMAP.md). A próxima etapa é a integração e o diagnóstico MLX-LM, ainda não iniciada; a inferência real e o método de pontuação ainda exigem validação técnica.
 
 ## Visão geral
 

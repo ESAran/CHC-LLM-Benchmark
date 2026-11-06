@@ -15,3 +15,7 @@ models/
 .env.*
 !.env.example
 .DS_Store
+*.tmp
+*.swp
+*.swo
+*~
