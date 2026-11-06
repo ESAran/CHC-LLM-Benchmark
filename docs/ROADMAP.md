@@ -2,7 +2,7 @@
 
 > **Documento vivo:** este arquivo acompanha a implementação e a validação do benchmark. Deve ser atualizado à medida que o projeto evoluir, sem transformar planos ou resultados não verificados em fatos.
 >
-> **Última atualização:** 2026-11-06 — Entrega 2 (2A e 2B) concluída após aprovação técnica explícita do responsável. Suíte reexecutada: 71 testes aprovados. Entrega 3 permanece pendente e não autorizada; fechamento somente em commit local, sem push ou merge.
+> **Última atualização:** 2026-11-06 — Entrega 2 (2A e 2B) concluída após aprovação técnica explícita do responsável. Suíte reexecutada: 71 testes aprovados. Entrega 3 permanece pendente e não autorizada. Após o fechamento local, o responsável autorizou integrar à main, publicar no remoto e organizar as branches.
 
 ## 1. Objetivo
 
@@ -27,8 +27,9 @@ novamente aprovados e duas execuções reais controladas já verificadas. Os rel
 e o histórico preservam o estado no momento de cada validação; menções anteriores
 a aprovação pendente foram superadas pelo aceite explícito registrado neste fechamento.
 
-**Limite da autorização atual:** conclusão e commit local da Entrega 2, sem push,
-merge ou implementação da Entrega 3. O protocolo técnico continua provisório para
+**Limite da autorização atual:** integração à `main`, push e organização das
+branches da Entrega 2, expressamente autorizados após o commit de conclusão.
+A Entrega 3 não foi iniciada. O protocolo técnico continua provisório para
 as avaliações futuras, sem alterações metodológicas adicionais.
 
 ### Legenda de status
@@ -342,3 +343,13 @@ pesos, caches e `outputs/` seguem ignorados; os JSONs de evidência em
 mudança nas fórmulas, no protocolo ou na implementação durante o fechamento.
 Commit local autorizado na branch `codex/feat-mlx-backend`, sem push ou merge.
 **Próximo passo:** aguardar autorização específica para a Entrega 3, não iniciada.
+
+**2026-11-06 — Autorização de integração e publicação:** após o commit local
+`2f12368` (conclusão da Entrega 2), o responsável autorizou merge, push e
+organização do Git. A integração inclui também `f9c5352`, aprovação da Entrega 1
+que ainda estava apenas local. Preservar os commits aprovados, integrar sem
+reescrever histórico e remover somente branches já incorporadas à `main`.
+Validação disponível: 71 testes aprovados no fechamento, sem mudanças posteriores
+nos fontes. Ambientes, pesos, caches e saídas temporárias permanecem ignorados.
+As referências anteriores a “sem push ou merge” descrevem as autorizações da época.
+Próximo trabalho de desenvolvimento: Entrega 3, somente após autorização específica.
