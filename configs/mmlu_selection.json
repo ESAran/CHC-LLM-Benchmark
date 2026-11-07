@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "dataset": "cais/mmlu",
+  "revision": "c30699e8356da336a370243923dbaf21066bb9fe",
+  "subjects": [
+    "high_school_psychology",
+    "high_school_world_history",
+    "high_school_biology"
+  ],
+  "counts": {
+    "dev": 5,
+    "test": 20
+  },
+  "seed": 42,
+  "selection_method": "sha256_index_rank_v1",
+  "files": [
+    {
+      "subject": "high_school_psychology",
+      "split": "dev",
+      "sha256": "ada3aebdb9802d09e0181ce8e219c1b68dd0cad09a253299c4027512b2f26fa8",
+      "size_bytes": 5185
+    },
+    {
+      "subject": "high_school_psychology",
+      "split": "test",
+      "sha256": "9df4a744eb6faa12bb359df1f808c0461c055f240b998a9ec9d97b1c4e49a958",
+      "size_bytes": 92752
+    },
+    {
+      "subject": "high_school_world_history",
+      "split": "dev",
+      "sha256": "5c37e72b49e3c509af1fcf83fcd75e12cfad9f31034344bcf6f3a2db64a7c0f7",
+      "size_bytes": 10248
+    },
+    {
+      "subject": "high_school_world_history",
+      "split": "test",
+      "sha256": "abc9b0182e7cdd19ef7b70ec9734f62436f99e76c740c67f41155611eccbcd7d",
+      "size_bytes": 201554
+    },
+    {
+      "subject": "high_school_biology",
+      "split": "dev",
+      "sha256": "4ae1c2d737b60977c22645093846ee6b9642c84480fde8ea39d8654630682aa4",
+      "size_bytes": 4939
+    },
+    {
+      "subject": "high_school_biology",
+      "split": "test",
+      "sha256": "73600cc5c8032ffd20115887ec4f2c868d75c403c70ac1d115295e72cb8d80e3",
+      "size_bytes": 62704
+    }
+  ],
+  "prompt_template": "current-no-enumeration-v1",
+  "max_prompt_tokens": 1024,
+  "tokenizer": {
+    "model": "mlx-community/Qwen2.5-0.5B-Instruct-bf16",
+    "revision": "56d07e766edd7159fbe12ed12d9cf114bf38bf1e",
+    "files_sha256": {
+      "added_tokens.json": "58b54bbe36fc752f79a24a271ef66a0a0830054b4dfad94bde757d851968060b",
+      "config.json": "bc8d587c364e4905e8510be14d07c5e69c84347c17f7c7607d5ee4470e72cb50",
+      "merges.txt": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "special_tokens_map.json": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+      "tokenizer.json": "a8506e7111b80c6d8635951a02eab0f4e1a8e4e5772da83846579e97b16f61bf",
+      "tokenizer_config.json": "f7c61e32b7a17d19bf8e7037dcb74079a833e53ea9801f24008cac68458f03b7",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    }
+  }
+}

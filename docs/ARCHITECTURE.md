@@ -25,7 +25,7 @@ A pesquisa examina a relação entre desempenho e incerteza; **não assume** que
 
 | Dimensão | MVP | Possível expansão |
 | --- | --- | --- |
-| Dataset | MMLU, pequena amostra da partição `validation` | WinoGrande, outros conjuntos e divisões |
+| Dataset | MMLU fixado: 15 `dev` para validação técnica e 60 `test` para piloto posterior, três disciplinas | WinoGrande, outros conjuntos e divisões |
 | Backend | MLX-LM no Apple Silicon | Transformers/PyTorch em Mac ou servidor; API quando suportar o protocolo |
 | Modelo | Qwen2.5-0.5B-Instruct como candidato de desenvolvimento | Outros modelos e tamanhos |
 | Pontuação | Inspeção e, **se válida**, pontuação de rótulos `A`–`D` no próximo token | Log-verossimilhança de sequências e outros métodos |
@@ -138,6 +138,40 @@ class Question:
 ```
 
 O dataset adapter deve acrescentar ou associar proveniência: nome/configuração do dataset, revisão, partição, ID original e filtros. Validar `2 <= len(choices)`, índice de gabarito válido e identificadores não duplicados. Não presumir que todos os datasets possuem quatro alternativas.
+
+### 5.1.1 Preparação MMLU autorizada em 3A — 2026-11-07
+
+O pedido de 3A **substitui a proposta inicial de até 20 questões de `validation`**:
+`high_school_psychology`, `high_school_world_history` e `high_school_biology`,
+5 questões de `dev` e 20 de `test` por disciplina. Em 3A somente a preparação está
+autorizada; `dev` não será usado como demonstração few-shot. A execução em 3B
+aguarda revisão técnica. O subconjunto de `test` fica congelado para o piloto,
+sem escolha de prompt ou ajuste de pontuação pelos seus resultados.
+
+`src/benchmark/mmlu.py` é um módulo de dataset separado, preservando `datasets.py`
+e `Question`. `MMLUSource` fixa arquivo/revisão/hash; `MMLUItem` associa `Question`
+a split, posição original (base zero) e hash da linha. IDs combinam dataset,
+revisão, disciplina, split e índice. O adaptador valida quatro alternativas,
+textos obrigatórios e índice inteiro 0–3; não normaliza texto nem reordena opções.
+
+`configs/mmlu_selection.json` fixa a revisão
+`c30699e8356da336a370243923dbaf21066bb9fe`, seed 42 e seis Parquets. A seleção
+`sha256_index_rank_v1` ordena hashes da identidade + seed + índice, toma a
+quantidade por estrato e apresenta os índices em ordem original. Conteúdo,
+gabarito, comprimento e resultados de modelo não entram na escolha. Duplicações
+são reportadas sem remoção ou substituição; arquivo/schema inválido interrompe a preparação.
+
+A rede e a medição com tokenizer ficam em `diagnostics/mmlu_dataset.py`, fora do
+adaptador e do Runner. O diagnóstico usa o prompt e chat template aprovados para
+contar a entrada completa contra 1024 tokens, sem truncar ou substituir itens.
+Os pesos não são carregados. O manifesto registra índices/IDs, hashes dos arquivos,
+linhas, prompts, tokens e fontes; a saída JSONL preserva os 75 conteúdos completos.
+Somente o manifesto final indica preparação persistida; isso não representa uma
+execução experimental nem substitui os metadados de avaliação do Runner.
+
+O Runner/configuração de experimento continuam com fixtures simuladas/controladas.
+Conectar MMLU a esse fluxo é trabalho de 3B, ainda não iniciado. Evidências e
+limitações: [validação 3A](reports/MMLU_DATASET_VALIDATION.md).
 
 ### 5.2 `ModelBackend`
 
@@ -311,7 +345,7 @@ Separar **métricas por questão** (acerto, entropia) de **agregados por execuç
 
 ## 8. Configuração dos experimentos
 
-Usar um arquivo YAML versionável e validado. Exemplo **ilustrativo**, sujeito à aprovação do diagnóstico de pontuação:
+Usar um arquivo YAML versionável e validado. O exemplo abaixo é **histórico e não executável**, anterior às decisões de 2B/3A: `validation`, limite 20 e template ilustrativo foram superados. A preparação atual está em `configs/mmlu_selection.json`; a configuração de execução MMLU será definida somente em 3B. Não usar este YAML para o piloto:
 
 ```yaml
 experiment:
@@ -341,7 +375,7 @@ output:
   directory: outputs
 ```
 
-> **Nota:** o nome exato do artefato do modelo, a revisão e o template serão verificados na integração. Este YAML não é um comando de execução e não deve ser tratado como garantia de compatibilidade.
+> **Nota:** modelo, revisão e template aprovados estão na seção 6.4; seleção autorizada, na seção 5.1.1. Este YAML preserva apenas a intenção inicial, sem garantia de compatibilidade com a CLI atual.
 
 Não aceitar parâmetros desconhecidos silenciosamente. Registrar a configuração resolvida em cada execução. Seleção por `seed` não substitui o registro dos IDs exatos das questões e suas ordens; o mesmo experimento deve ser reproduzível. Reservar `test` para avaliação posterior, sem ajustar o protocolo com base nesses resultados.
 
@@ -432,10 +466,9 @@ Executar uma pequena inferência isolada com MLX-LM; inspecionar prompt, tokeniz
 
 ### Entrega 3 — Piloto MMLU
 
-- Integrar adaptador MMLU com identificação de revisão/partição e seleção determinística.
-- Integrar o método de pontuação **somente após aprovação técnica**.
-- Executar até 20 questões de `validation`, revisar logs e verificar os resultados.
-- Documentar achados e limitações sem extrapolar para conclusões científicas.
+- **3A:** preparar adaptador MMLU independente, revisão/partição/IDs, seed, índices e hashes; 15 `dev` + 60 `test` conforme seção 5.1.1. Validar dados, duplicações e orçamento de tokens sem avaliar o modelo.
+- **3B, após revisão e autorização:** conectar a seleção ao Runner, executar validação técnica e piloto com o protocolo já aprovado, revisar logs e persistência.
+- Documentar achados e limitações sem extrapolar para conclusões científicas; não ajustar o protocolo pelos resultados do subconjunto `test`.
 
 ### Entrega 4 — Evolução posterior
 

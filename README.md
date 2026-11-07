@@ -1,6 +1,6 @@
 # LLM Benchmark — Desempenho e Incerteza
 
-> **Estado:** Entrega 1 concluída e aprovada. A comparação de prompts de 2A foi aprovada em 2026-11-06; a Entrega 2B integra MLX ao Runner com protocolo provisório, 71 testes offline e execução real controlada. **Entrega 2 concluída: 2B aprovada tecnicamente em 2026-11-06. Entrega 3 não iniciada.** Veja a [validação 2B](docs/reports/VALIDATION_DELIVERY_2B.md) e o [roadmap](docs/ROADMAP.md).
+> **Estado:** Entregas 1 e 2 concluídas e aprovadas. **Entrega 3A concluída e aprovada tecnicamente em 2026-11-07:** seleção MMLU com 15 questões de `dev` e 60 de `test`, sem avaliação pelo modelo. Suíte atual: 86 testes offline aprovados. A Entrega 3B foi autorizada e será iniciada após o fechamento local de 3A. Veja a [validação 3A](docs/reports/MMLU_DATASET_VALIDATION.md) e o [roadmap](docs/ROADMAP.md).
 
 ## Visão geral
 
@@ -20,8 +20,8 @@ A primeira versão será implementada **no repositório principal do projeto**, 
 | Item | Escolha inicial proposta |
 | --- | --- |
 | Linguagem | Python |
-| Dataset | MMLU, com pequena amostra identificável da partição `validation` |
-| Questões | Até 20, inicialmente, para validação técnica |
+| Dataset | `cais/mmlu`, revisão fixa, três disciplinas; `dev` técnico e `test` reservado ao piloto posterior |
+| Questões | 5 `dev` + 20 `test` por disciplina: 15 + 60, sem execução experimental em 3A |
 | Modelo de desenvolvimento | Qwen2.5-0.5B-Instruct em variante compatível com MLX-LM (candidata) |
 | Inferência | Local, utilizando MLX-LM em Apple Silicon |
 | Pontuação das alternativas | Rótulos de resposta (`A`, `B`, `C`, `D`), **condicionada à validação da tokenização e dos logits** |
@@ -30,7 +30,7 @@ A primeira versão será implementada **no repositório principal do projeto**, 
 
 O equipamento de referência para a fase inicial é um **Mac com Apple M2 e 8 GB de memória unificada**. O tamanho do modelo, o uso de memória e a forma exata de pontuação serão confirmados com testes antes de considerar o piloto validado.
 
-O piloto de desenvolvimento **não será apresentado como avaliação científica conclusiva**. A partição de teste deverá ser preservada para avaliações posteriores, evitando ajustar o protocolo a partir dos resultados finais.
+O piloto de desenvolvimento **não será apresentado como avaliação científica conclusiva**. O subconjunto de `test` preparado em 3A fica reservado ao piloto posterior, sem ajustar o protocolo a partir dos seus resultados. O pedido de 3A substitui explicitamente a proposta anterior de até 20 questões de `validation`.
 
 ## Arquitetura
 
@@ -102,7 +102,7 @@ Esta árvore representa a **arquitetura desejada**, não uma lista de arquivos j
 1. Criar a estrutura, os formatos de dados, a configuração e testes com um **backend simulado**.
 2. Implementar e testar matematicamente a normalização, a entropia e a acurácia.
 3. Integrar MLX-LM e realizar **diagnóstico de tokenização, formato de prompt e acesso aos logits**.
-4. Se o método de pontuação for validado, executar um piloto pequeno com MMLU `validation`.
+4. Preparar a seleção MMLU em 3A; após revisão e autorização de 3B, executar a validação técnica em `dev` e o piloto reservado em `test`.
 5. Registrar resultados por questão, configurações e versões, analisar limitações e evoluir gradualmente.
 
 O backend Transformers, a execução em servidores, novas métricas e novos datasets pertencem a fases futuras; **não fazem parte do MVP**.
@@ -229,7 +229,7 @@ erros combinados e inconsistências entre contratos.
   a própria escrita são reportadas como erros, sem prometer persistência.
 
 Na Entrega 1 não havia backend real. A integração MLX da Entrega 2B está descrita
-abaixo; Transformers, APIs, adaptação do MMLU e pontuação de sequências continuam fora do escopo. Na simulação, a massa original dos rótulos no vocabulário
+abaixo; backend Transformers, APIs e pontuação de sequências continuam fora do escopo. O adaptador MMLU de 3A prepara dados separadamente, sem execução pelo Runner. Na simulação, a massa original dos rótulos no vocabulário
 permanece nula, pois o backend simulado não fornece essa evidência. A Entrega 1 valida
 apenas contratos, matemática e fluxo; **o MVP com modelo real ainda não está validado**.
 
@@ -301,6 +301,36 @@ não é um score MMLU nem evidência científica de generalização. Os 71 teste
 incluem os 54 da fundação e 17 novos testes offline; veja
 [VALIDATION_DELIVERY_2B.md](docs/reports/VALIDATION_DELIVERY_2B.md).
 
+## Preparação MMLU — Entrega 3A
+
+O adaptador independente `src/benchmark/mmlu.py` preserva texto, quatro alternativas,
+gabarito, disciplina e posição original. `configs/mmlu_selection.json` fixa revisão,
+seed 42, arquivos e hashes. O script `diagnostics/mmlu_dataset.py` prepara 15 questões
+de `dev` e 60 de `test` e conta tokens com o tokenizer local aprovado em 2B.
+Não carrega pesos nem executa avaliação. A configuração do Runner ainda não aceita MMLU.
+
+As dependências opcionais estão em `diagnostics/mmlu-requirements.txt`; use um
+ambiente separado do núcleo. Com essas dependências instaladas e o snapshot local
+já disponível, a preparação inicial pode ser reproduzida na raiz:
+
+```sh
+PYTHONPATH=src python diagnostics/mmlu_dataset.py --download \
+  --tokenizer-snapshot .cache/mlx-diagnostic/huggingface/hub/models--mlx-community--Qwen2.5-0.5B-Instruct-bf16/snapshots/56d07e766edd7159fbe12ed12d9cf114bf38bf1e \
+  --output outputs/mmlu-preparation
+```
+
+`--download` autoriza apenas os seis Parquets fixados (377.382 bytes); o tokenizer
+continua exclusivamente local. Para repetir, omita a opção, use `HF_HUB_OFFLINE=1`
+e escolha outra pasta de saída. Nenhum arquivo existente será sobrescrito.
+`selected_questions.jsonl` guarda conteúdo e procedência; `manifest.json`, publicado
+por último, guarda seleção, hashes, contagem de tokens e duplicações. Pastas sem o
+manifesto final não devem ser consumidas. Os artefatos de trabalho ficam ignorados.
+
+A seleção verificada tem entradas de 72 a 574 tokens, nenhuma acima do limite de
+1024. Há alternativas A/C idênticas em `high_school_biology/dev/2`; o conteúdo foi
+preservado e sinalizado. Consulte o [relatório](docs/reports/MMLU_DATASET_VALIDATION.md)
+e o [manifesto auditável](docs/reports/MMLU_SELECTION_MANIFEST.json) antes de aprovar 3B.
+
 ## Reprodutibilidade e transparência
 
 Cada execução deverá registrar, no mínimo:
@@ -328,6 +358,7 @@ Pesos dos modelos, caches, credenciais e resultados volumosos não devem ser env
 - **Plano técnico inicial:** Python, MLX-LM local, MMLU e um Qwen2.5 pequeno.
 - **Protocolo provisório aprovado para 2B:** prompt sem enumeração, chat template do snapshot, zero-shot, rótulos nus e forward completo sem cache.
 - **Concluído:** aceite técnico da integração 2B em 2026-11-06, com 71 testes novamente aprovados.
-- **Pendente:** autorização específica para iniciar a Entrega 3 — piloto MMLU.
+- **3A concluída e aprovada:** revisão, seed, índices, hashes e orçamento de tokens de 75 questões MMLU; anomalia A/C de biologia mantida por decisão explícita.
+- **Próxima etapa autorizada:** 3B, validar 15 `dev` e, se houver sucesso técnico, executar 60 `test`; sem commit de 3B ou envio remoto.
 
 Consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) antes de alterar contratos, pontuação ou fórmulas.
