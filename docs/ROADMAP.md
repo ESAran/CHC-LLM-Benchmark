@@ -2,7 +2,7 @@
 
 > **Documento vivo:** este arquivo acompanha a implementação e a validação do benchmark. Deve ser atualizado à medida que o projeto evoluir, sem transformar planos ou resultados não verificados em fatos.
 >
-> **Última atualização:** 2026-11-08 — 3B concluída no commit local `5db73f9`; 3C implementada e verificada, aguardando revisão técnica. Somente 60 test analisados, 15 dev separados, quatro PNGs e JSON reproduzíveis; 117 testes aprovados. Sem nova inferência. Commit e publicação na branch de feature autorizados em 2026-11-08; aceite técnico de 3C pendente, sem merge.
+> **Última atualização:** 2026-11-09 — avaliação integral concluída e aprovada tecnicamente. Adendo documental sobre 33 empates, BF16, frequências de B e 1.081 conteúdos distintos. 128 testes novamente aprovados; artefatos preservados por hash. Fechamento em commit local autorizado, sem push/merge.
 
 ## 1. Objetivo
 
@@ -14,30 +14,34 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 
 ## 2. Estado atual
 
-**Fase atual:** Entrega 3C — Análise exploratória implementada e verificada
-localmente, **aguardando revisão técnica**. Entregas 1, 2, 3A e 3B concluídas e
-aprovadas. O commit exclusivo de 3B é `5db73f95bcc5f14e1c245ecf06bbf94e553cb434`,
-criado após revisão e 100 testes aprovados, antes de implementar 3C.
+**Fase atual:** avaliação integral das três disciplinas MMLU **concluída e
+aprovada tecnicamente em 2026-11-09**, com fechamento local autorizado. Entregas 1, 2, 3A e 3B aprovadas.
+A implementação 3C foi publicada em `e581438`, sem merge ou aceite automático;
+seus artefatos foram preservados e reutilizados na expansão autorizada.
 
-**Evidências atuais:** [análise exploratória](reports/MMLU_EXPLORATORY_ANALYSIS.md),
-[JSON com valores e procedência](reports/MMLU_EXPLORATORY_EVIDENCE.json) e quatro
-PNGs em `docs/reports/mmlu_exploratory/`. Acurácia 34/60 (56,6667%); entropia média
-0,346090 nos 34 acertos e 0,651688 nos 26 erros. Quatro erros satisfazem máx. p
-condicional ≥ 0,90, critério descritivo sem alegação de calibração.
+**Escopo definitivo:** 545 Psicologia + 237 História mundial + 310 Biologia =
+1.092 questões test, substituindo a proposta de 1.000. Revisão de 3A, todos os
+índices originais, sem amostragem/filtragem. Piloto de 60 e dev técnico intactos.
 
-**Validação:** 117 testes aprovados (100 anteriores + 17 novos), 1,062 s; quartis,
-médias, dispersão, histogramas e frequências conferidos por referência NumPy/Counter.
-Relatório, JSON e quatro PNGs repetidos byte a byte no ambiente verificado e figuras
-inspecionadas visualmente. Nenhum import de MLX durante a geração dos relatórios.
+**Evidências:** [relatório integral](reports/MMLU_FULL_EVALUATION.md),
+[JSON](reports/MMLU_FULL_EVIDENCE.json), [manifesto](reports/MMLU_FULL_SELECTION_MANIFEST.json)
+e [run completo arquivado](reports/mmlu_full/run.tar.gz). Preflight de 1.092
+entradas com 64–788 tokens, candidatos contextuais A–D válidos. Run
+`20261109T120102573628Z_d6b1d88132a14f129a8a1002dd34cf5a`: 1.092 válidas, 0 falhas,
+593 acertos, acurácia 0,543040293040293; macro 0,5309322201451923;
+entropia média 0,4553146632905629. Todos os valores comparados nos 60 itens
+sobrepostos repetiram exatamente (diferenças máximas zero).
 
-**Limites preservados:** somente os 60 test de `mmlu-3a-v1` entram na análise;
-os 15 dev são exclusivamente técnicos. Resultados, dados, fórmulas, prompt, scoring
-e seleção intactos. A anomalia A/C de biologia dev/2 continua documentada em 3B.
-Não inferir calibração, viés de posição ou diferenças cognitivas a partir dessas
-estatísticas; protocolo ajustado com este test exigirá nova amostra independente.
+**Validação:** 128 testes offline aprovados (117 anteriores + 11 novos), 1,120 s;
+recálculo independente Decimal nos 1.092 registros e NumPy/Counter nos quatro
+grupos. Anomalia: 11 pares duplicados em Psicologia preservados, sem conflito
+de gabarito; nenhum item test com alternativas repetidas. Não houve mudança do
+prompt, modelo, backend, método, limite ou fórmulas em função dos resultados.
 
-**Próximo passo:** publicar as alterações autorizadas em `codex/feat-mmlu-analysis`;
-o responsável deverá revisar 3C e decidir o aceite antes da integração à main.
+**Próximo passo:** propor comparação com modelo maior nas mesmas 1.092 questões,
+com preflight e protocolo preservado, e investigação separada de robustez A–D.
+Aguardar autorização antes de iniciar outro modelo. Branch de fechamento local:
+`codex/feat-mmlu-full-evaluation`; sem push ou merge.
 
 ### Legenda de status
 
@@ -303,7 +307,33 @@ a mesma amostra test como validação independente.
 
 ### Entrega 4 — Ampliação e análise experimental
 
-**Status:** Futuro; escopo a decidir após o piloto.
+**Status:** Em andamento — avaliação integral destas três disciplinas concluída
+e aprovada em 2026-11-09. Comparação entre modelos e demais ampliações continuam
+futuras; esta aprovação não conclui toda a Entrega 4.
+
+#### Avaliação integral MMLU — três disciplinas
+
+**Estado:** concluída e aprovada tecnicamente em 2026-11-09.
+
+- [x] Fixar seleção `mmlu-full-test-v1` com os 1.092 índices test originais e hashes; preservar piloto/dev.
+- [x] Reutilizar os três Parquets e snapshot do modelo da revisão aprovada, sem novos downloads desses artefatos.
+- [x] Validar preflight contextual de todos os itens, sem truncamento: 64–788 tokens, limite 1024.
+- [x] Executar um único run real integral pelo Runner: 1.092 válidas, 0 falhas técnicas, encerramento/persistência conferidos.
+- [x] Comparar 60 itens com o piloto: igualdade de logits, probabilidades, entropia, massa, predições e conteúdo.
+- [x] Preservar 11 pares duplicados em Psicologia; documentar IDs, cobertura e limitações.
+- [x] Ampliar análise reutilizável com macro e seleção explícita; gerar tabelas, cinco PNGs, JSON e arquivo do run.
+- [x] Executar 128 testes offline e auditorias independentes das métricas/agregados; manter regressões anteriores.
+- [x] Receber aprovação técnica explícita da avaliação integral em 2026-11-09.
+- [x] Documentar 33 empates exatos/`lowest_index`, limitação BF16, B=415 versus 270 e 1.081 conteúdos distintos.
+- [x] Revalidar 128 testes (OK, 1,131 s), diff e preservação dos artefatos antes do fechamento.
+- [x] Receber autorização para commit local de conclusão.
+- [ ] Receber autorização para eventual publicação/merge; não realizada neste fechamento.
+
+Resultados detalhados no [relatório integral](reports/MMLU_FULL_EVALUATION.md).
+Não representa todo o MMLU ou confirmação independente do piloto; o protocolo
+não foi ajustado pelos resultados. Acurácia macro é média simples entre disciplinas,
+sem criação de métrica composta de eficiência informacional.
+
 
 - [ ] Avaliar aumento da amostra e comparações entre modelos, mantendo protocolos compatíveis.
 - [ ] Considerar outros modelos locais e, se necessário, backend Transformers para execução em servidor.
@@ -510,3 +540,60 @@ nenhum arquivo versionado abrangido pelo `.gitignore`. Ambientes, pesos, caches
 e resultados temporários permanecem excluídos. Publicação não equivale ao aceite
 técnico de 3C: revisão ainda pendente, sem marcar a entrega concluída ou integrar
 à main. Próximo passo: revisar o relatório exploratório e decidir o aceite.
+
+### 2026-11-09 — Expansão integral autorizada, executada e aguardando revisão
+
+Escopo de 1.000 substituído pelos 1.092 test completos (545/237/310), sem alterar
+revisão, alternativas, prompt, modelo, scoring, limite ou fórmulas. Branch local
+`codex/feat-mmlu-full-evaluation`, base `e581438`. Preflight antes da inferência:
+1.092 registros/IDs/hashes íntegros, 64–788 tokens, 4.368 continuações A–D válidas;
+11 pares duplicados originais mantidos. Ambiente temporário anterior ausente;
+reutilizado ambiente local e restaurado apenas PyArrow 26.0.1. Sem download de
+pesos/dataset, sem execução de dev ou retentativas por desempenho.
+
+126 testes aprovados antes do run. Execução única
+`20261109T120102573628Z_d6b1d88132a14f129a8a1002dd34cf5a`: 1.092 válidas/0 falhas,
+593 acertos; Psicologia 323/545, História 130/237, Biologia 140/310.
+Global 0,543040293040293; macro 0,5309322201451923. Sobreposição de 60 repetiu
+exatamente logits, probabilidades, entropia e massa. Auditoria Decimal (70 dígitos):
+erros máximos 1,1102230246251565e-16 / 1,1709383462843448e-16 em softmax/entropia.
+NumPy/Counter conferiram os quatro grupos. Suíte final: **128 testes, OK, 1,120 s**.
+
+Relatório, JSON, manifesto integral e cinco PNGs em `docs/reports/`; run original
+em `outputs/mmlu-full-test/` e cópia compactada auditável com os quatro arquivos
+originais em `docs/reports/mmlu_full/run.tar.gz`. Evidências anteriores preservadas.
+Próximo passo: revisão técnica. Sem commit, push, merge ou conclusão automática.
+
+Conferência final: 128 testes novamente aprovados (1,120 s), cinco figuras
+inspecionadas visualmente, dados dos gráficos conferidos e arquivo compactado
+comparado byte a byte com os quatro artefatos originais. Hashes dos fontes,
+links Markdown, preservação dos relatórios anteriores e ausência de caminhos
+pessoais nos novos artefatos conferidos. Diff sem erros de whitespace.
+
+### 2026-11-09 — Aprovação e fechamento da avaliação integral
+
+Aprovação técnica explícita com base no relatório, evidências e manifesto.
+Adendo documental conferido nos 1.092 registros persistidos: 33 empates exatos
+no maior logit (17 Psicologia, 9 História, 7 Biologia), todos resolvidos pela regra
+existente `lowest_index`; predições nos empates A=21/B=8/C=4/D=0. BF16 limita
+precisão, sem evidência de que explique sozinho todos os empates. B aparece em
+415 predições e 270 gabaritos; nenhuma atribuição causal a viés de posição.
+Os 11 pares idênticos de Psicologia permanecem: 1.092 registros/1.081 conteúdos
+distintos, sem mudar denominadores ou recalcular predições.
+
+Diff da expansão revisado; alterações deste fechamento exclusivamente documentais.
+Suíte `PYTHONPYCACHEPREFIX=/tmp/mmlu-closure-pycache PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -q`:
+**128 testes, OK, 1,131 s**. Manifesto, JSON, quatro arquivos do run, arquivo auditável
+e cinco PNGs preservados por SHA-256; arquivo compactado conferido byte a byte.
+Resultados, fontes experimentais, fórmulas e configurações permanecem os aprovados.
+O JSON/gerador de relatório preservam o estado histórico pré-aceite; o adendo
+editorial e este roadmap registram a aprovação sem reescrever essas evidências.
+Ambientes, pesos, caches e temporários continuam ignorados. Commit local de
+conclusão autorizado na branch `codex/feat-mmlu-full-evaluation`; sem push/merge.
+
+Próxima etapa proposta, não iniciada: comparar modelo maior após fixar snapshot,
+precisão e compatibilidade contextual/memória, usando o mesmo manifesto, prompt,
+zero-shot, forward sem cache, scoring, desempate e métricas. Experimento separado
+de robustez por rotações balanceadas A–D, com remapeamento explícito do gabarito,
+resultados próprios e análise de estabilidade por conteúdo, sem substituir o run
+principal nem otimizar o protocolo a partir destas questões.

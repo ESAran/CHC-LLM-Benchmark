@@ -7,7 +7,7 @@ import yaml
 
 from .prompts import TEMPLATE, CURRENT_TEMPLATE, TEMPLATES
 from .backends.mlx import MODEL, REVISION
-from .mmlu_selection import DATASET, REVISION as MMLU_REVISION, SELECTION_ID, validate_scope
+from .mmlu_selection import DATASET, REVISION as MMLU_REVISION, FULL_SELECTION_ID, validate_scope
 
 
 def _fields(value: object, expected: set[str], location: str) -> Mapping:
@@ -20,7 +20,7 @@ def _fields(value: object, expected: set[str], location: str) -> Mapping:
 class RunConfig:
     experiment_name: str
     limit: int
-    seed: int
+    seed: int | None
     output_directory: str
     backend: str = "simulated"
     dataset_revision: str = "v1"
@@ -40,9 +40,10 @@ class RunConfig:
         if self.backend not in ("simulated", "mlx"):
             raise ValueError("Backend não suportado.")
         if self.dataset_name == DATASET:
-            maximum = validate_scope(self.subjects, self.dataset_split)
-            if (self.dataset_revision != MMLU_REVISION or self.selection_id != SELECTION_ID
-                    or type(self.seed) is not int or self.seed != 42
+            maximum = validate_scope(self.subjects, self.dataset_split, self.selection_id)
+            seed_valid = (self.seed is None if self.selection_id == FULL_SELECTION_ID
+                          else type(self.seed) is int and self.seed == 42)
+            if (self.dataset_revision != MMLU_REVISION or not seed_valid
                     or self.backend != "mlx" or self.prompt_template != CURRENT_TEMPLATE
                     or self.max_prompt_tokens != 1024
                     or type(self.limit) is not int or self.limit != maximum
@@ -58,7 +59,8 @@ class RunConfig:
             maximum = 3 if self.dataset_revision == "v1" else 16
         if type(self.limit) is not int or not 1 <= self.limit <= maximum:
             raise ValueError(f"dataset.limit deve ser inteiro entre 1 e {maximum}.")
-        if type(self.seed) is not int:
+        if type(self.seed) is not int and not (self.dataset_name == DATASET
+                and self.selection_id == FULL_SELECTION_ID and self.seed is None):
             raise ValueError("dataset.seed deve ser inteiro.")
         if not isinstance(self.output_directory, str) or not self.output_directory.strip():
             raise ValueError("output.directory deve ser texto não vazio.")

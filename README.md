@@ -1,6 +1,6 @@
 # LLM Benchmark — Desempenho e Incerteza
 
-> **Estado:** Entregas 1, 2, 3A e 3B concluídas e aprovadas. **3C implementada e verificada, aguardando revisão técnica:** análise dos 60 test persistidos, quatro gráficos PNG e JSON auditável; 117 testes offline aprovados. Nenhuma nova inferência. Veja a [análise exploratória](docs/reports/MMLU_EXPLORATORY_ANALYSIS.md) e o [roadmap](docs/ROADMAP.md).
+> **Estado:** Entregas 1, 2, 3A e 3B aprovadas; 3C implementada, aguardando revisão. **Avaliação integral concluída e aprovada tecnicamente em 2026-11-09:** 1.092/1.092 test válidos nas três disciplinas, 593 acertos; sobreposição de 60 itens reproduzida exatamente. Fechamento local autorizado, sem push/merge. Veja a [avaliação integral](docs/reports/MMLU_FULL_EVALUATION.md) e o [roadmap](docs/ROADMAP.md).
 
 ## Visão geral
 
@@ -387,6 +387,39 @@ erros com máx. p condicional ≥ 0,90 e 12 exemplos escolhidos por uma regra si
 Isso não demonstra calibração, viés de posição ou diferenças cognitivas. Os valores
 completos, regras e hashes estão no [JSON](docs/reports/MMLU_EXPLORATORY_EVIDENCE.json).
 A 3C aguarda revisão técnica; commit e publicação na branch de feature autorizados em 2026-11-08.
+
+## Avaliação integral das três disciplinas MMLU
+
+A expansão autorizada substitui a proposta de 1.000 questões por **todos os 1.092
+índices test**: Psicologia 545, História mundial 237 e Biologia 310. O conjunto
+`mmlu-full-test-v1` tem manifesto próprio, sem amostragem (seed `null`), preserva
+11 pares duplicados na origem e usa a revisão de 3A. O piloto `mmlu-3a-v1`
+continua disponível sem alterações.
+
+`configs/mmlu_full_test.yaml` seleciona esse conjunto pelo Runner. O carregador
+confere o hash do manifesto, os Parquets e todos os índices; prompt, backend,
+limite de 1024 tokens e scoring permanecem iguais aos aprovados. Preflight:
+1.092 entradas de 64–788 tokens, todas contextualmente válidas para A–D.
+
+```sh
+# Cria uma NOVA avaliação real; não executar apenas para consultar resultados.
+HF_HUB_OFFLINE=1 PYTHONPATH=src .cache/mlx-diagnostic/venv/bin/python \
+  -m benchmark.cli --config configs/mmlu_full_test.yaml
+```
+
+A [avaliação integral](docs/reports/MMLU_FULL_EVALUATION.md) registra acurácia global
+593/1.092 (54,3040%) e macro 53,0932%. Os 60 itens do piloto repetiram exatamente;
+a expansão os contém e não constitui validação independente. Análise reutiliza
+`benchmark.analysis` e os gráficos de 3C, acrescentando a macro e histogramas.
+[JSON de evidências](docs/reports/MMLU_FULL_EVIDENCE.json),
+[manifesto](docs/reports/MMLU_FULL_SELECTION_MANIFEST.json) e
+[arquivo completo do run](docs/reports/mmlu_full/run.tar.gz) permitem auditoria.
+O arquivo compactado é uma evidência deliberada; `outputs/`, caches e pesos
+continuam ignorados. Nenhum resultado anterior foi substituído. Avaliação integral
+aprovada tecnicamente em 2026-11-09, com fechamento local autorizado.
+O relatório documenta 33 empates no maior logit (`lowest_index`), a limitação BF16,
+B em 415 predições versus 270 gabaritos e 1.081 conteúdos distintos em 1.092 registros.
+Essas observações não estabelecem causalmente viés de posição.
 
 ## Reprodutibilidade e transparência
 

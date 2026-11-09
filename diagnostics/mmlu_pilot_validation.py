@@ -39,7 +39,8 @@ def audit_run(directory: Path) -> dict:
     if any(meta['model'].get(k) != v for k, v in protocol.items()):
         raise ValueError('Protocolo persistido diverge de 2B.')
     items, source = load_frozen_mmlu(Path(config.selection_manifest),
-                                   Path(config.dataset_snapshot_path), config.subjects, config.dataset_split)
+                                   Path(config.dataset_snapshot_path), config.subjects, config.dataset_split,
+                                   config.selection_id)
     for key in ('manifest_sha256', 'frozen_selection_sha256', 'groups',
                 'question_provenance', 'preparation_records', 'anomaly_policy'):
         if source[key] != meta['dataset'].get(key):

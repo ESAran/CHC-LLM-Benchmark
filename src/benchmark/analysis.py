@@ -10,13 +10,22 @@ from typing import Sequence
 
 from .metrics import summarize
 from .mmlu import canonical_hash, file_hash
-from .mmlu_selection import DATASET, REVISION, SELECTION_ID, SUBJECTS, MANIFEST_SHA256
+from .mmlu_selection import DATASET, REVISION, SELECTION_ID, SUBJECTS, MANIFEST_SHA256, FULL_SELECTION_ID
 from .results import read_run
 from .schemas import EvaluationRecord
 
 PILOT_EVIDENCE_SHA256 = '974f22e63c06c753182ac574b8199a1579115cce2fd47f59eb35bc6f329ba6ed'
 HISTOGRAM_EDGES = tuple(i / 10 for i in range(11))
 LABELS = 'ABCD'
+
+
+def macro_accuracy(analysis: dict) -> dict:
+    """Média simples das acurácias disciplinares; não omite grupos sem válidos."""
+    groups = analysis['by_subject']
+    missing = [s for s, g in groups.items() if g['accuracy'] is None]
+    return {'value': fmean(g['accuracy'] for g in groups.values()) if groups and not missing else None,
+            'subject_count': len(groups), 'undefined_subjects': missing,
+            'weighting': 'equal_subject_weight'}
 
 
 def describe(values: Sequence[float]) -> dict:
@@ -66,13 +75,16 @@ def _aggregate(records: Sequence[EvaluationRecord], threshold: float) -> dict:
 
 
 def analyze_test(records: Sequence[EvaluationRecord], *, subjects: tuple[str, ...] = SUBJECTS,
-                 high_concentration_threshold: float = 0.90) -> dict:
+                 high_concentration_threshold: float = 0.90,
+                 selection_id: str = SELECTION_ID) -> dict:
     """Não filtra dev: rejeita entradas dev/mistas para impedir contaminação."""
     if (type(high_concentration_threshold) not in (int, float)
             or not math.isfinite(high_concentration_threshold) or not 0 <= high_concentration_threshold <= 1):
         raise ValueError('Limiar descritivo deve estar em [0, 1].')
     if not isinstance(subjects, tuple) or len(subjects) != len(set(subjects)):
         raise ValueError('Disciplinas devem ser uma tupla sem duplicações.')
+    if selection_id not in (SELECTION_ID, FULL_SELECTION_ID):
+        raise ValueError('Seleção de análise não autorizada.')
     ids = set()
     for record in records:
         if not isinstance(record, EvaluationRecord):
@@ -81,7 +93,7 @@ def analyze_test(records: Sequence[EvaluationRecord], *, subjects: tuple[str, ..
                 scoring=replace(record.scoring) if record.scoring else None)
         origin = record.provenance
         if (origin is None or origin['split'] != 'test' or origin['dataset'] != DATASET
-                or origin['revision'] != REVISION or origin['selection_id'] != SELECTION_ID
+                or origin['revision'] != REVISION or origin['selection_id'] != selection_id
                 or record.question.subject not in subjects):
             raise ValueError('A análise experimental aceita somente test do conjunto aprovado.')
         if record.question.id in ids:
@@ -121,7 +133,7 @@ def analyze_test(records: Sequence[EvaluationRecord], *, subjects: tuple[str, ..
             'prompt_sha256': canonical_hash(record.prompt),
         })
     return {
-        'split': 'test', 'selection_id': SELECTION_ID,
+        'split': 'test', 'selection_id': selection_id,
         'policy': {'high_concentration_threshold_inclusive': high_concentration_threshold,
                    'threshold_is_calibrated': False, 'quartiles': 'inclusive_linear_n_minus_1',
                    'standard_deviation': 'population_descriptive', 'invalid_records': 'explicit_exclusion_from_valid_denominator',

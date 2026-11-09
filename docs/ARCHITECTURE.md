@@ -230,6 +230,48 @@ amostra independente para validação. Não alterar dados ou resultados existent
 Implementação e artefatos: [análise 3C](reports/MMLU_EXPLORATORY_ANALYSIS.md),
 aguardando revisão técnica; 3B concluída no commit local `5db73f9`.
 
+### 5.1.4 Expansão integral autorizada em 2026-11-09
+
+O conjunto `mmlu-full-test-v1` abrange todos os índices test de Psicologia (545),
+História mundial (237) e Biologia (310), na mesma revisão de 3A. Substitui a
+proposta de 1.000 itens. Não usa amostragem: seed nula, índices originais crescentes,
+sem filtragem por conteúdo/gabarito, truncamento ou deduplicação. O manifesto e
+os resultados do piloto permanecem imutáveis. Dev não entra nesta avaliação.
+
+O carregador `mmlu_selection.py` aceita uma identidade de seleção explícita,
+com hashes separados para piloto/integral. O protocolo e o limite de 1024 tokens
+continuam congelados. A configuração integral exige os 1.092 itens e as três
+disciplinas; não aceita execução parcial por `limit`. O Runner passa somente a
+identidade configurada ao carregador, preservando o desacoplamento do backend.
+
+`diagnostics/mmlu_full_preflight.py` valida todos os registros e a tokenização
+sem MLX; tokens contextuais e hashes são congelados antes da execução. A auditoria
+`mmlu_full_validation.py` confere a persistência e compara os 60 itens sobrepostos,
+exigindo logits/predições iguais e diferença absoluta ≤ 1e-12 nos demais valores
+numéricos. Divergências bloqueiam a consolidação para investigação, sem retentativas
+por desempenho. A auditoria preserva contagens/motivos de falhas, se existirem.
+
+`analysis.py` aceita explicitamente a seleção integral, rejeitando mistura de
+seleções/dev. A acurácia macro é a média simples das acurácias por disciplina;
+fica indefinida se alguma não tiver registros válidos. Acurácia global e fórmulas
+de scoring/entropia não mudam. `diagnostics/mmlu_full_report.py` reutiliza os
+gráficos existentes e gera histogramas, tabelas, evidências e um arquivo compacto
+com os quatro artefatos originais. O arquivo não contém ambientes ou pesos.
+
+A análise integral é descritiva e sobreposta ao piloto, não validação independente
+ou evidência de capacidades CHC. A avaliação integral recebeu aprovação técnica
+explícita em 2026-11-09; o aceite não autoriza ajustes de protocolo nem conclusão
+automática das etapas anteriores. Fechamento local autorizado, sem push/merge.
+
+A regra existente `lowest_index` resolve empates pela primeira alternativa na
+ordem A–D. No run integral, 33 itens têm empate exato no maior logit; a regra pode
+influenciar frequências e deve ser relatada junto à precisão BF16. Promover logits
+após o forward não recupera diferenças já perdidas por arredondamento; não houve
+controle em maior precisão. B foi escolhida 415 vezes contra 270 gabaritos B,
+sem inferência causal de viés. Os 11 pares idênticos em Psicologia fazem com que
+1.092 registros correspondam a 1.081 conteúdos distintos (texto + opções ordenadas);
+o denominador oficial permanece 1.092, sem deduplicação retroativa.
+
 ### 5.2 `ModelBackend`
 
 É um **contrato de operações** para executar um modelo, não um modelo nem uma API remota. `backends/base.py` estabelece a interface comum; `backends/mlx.py` implementa a ponte com MLX-LM.

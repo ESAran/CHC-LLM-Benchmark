@@ -28,7 +28,7 @@ def run(config: RunConfig, backend: ModelBackend | None = None) -> Path:
     if config.dataset_name == DATASET:
         items, dataset_details = load_frozen_mmlu(
             Path(config.selection_manifest), Path(config.dataset_snapshot_path),
-            config.subjects, config.dataset_split)
+            config.subjects, config.dataset_split, config.selection_id)
         questions = tuple(item.question for item in items)
         origins = {r['id']: r for r in dataset_details['question_provenance']}
         prepared = {r['id']: r for r in dataset_details['preparation_records']}
