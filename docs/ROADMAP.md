@@ -2,7 +2,7 @@
 
 > **Documento vivo:** este arquivo acompanha a implementação e a validação do benchmark. Deve ser atualizado à medida que o projeto evoluir, sem transformar planos ou resultados não verificados em fatos.
 >
-> **Última atualização:** 2026-11-09 — avaliação integral concluída e aprovada tecnicamente. Adendo documental sobre 33 empates, BF16, frequências de B e 1.081 conteúdos distintos. 128 testes novamente aprovados; artefatos preservados por hash. Fechamento em commit local autorizado, sem push/merge.
+> **Última atualização:** 2026-11-09, após 18h05 (São Paulo) — fechamento editorial da V1: README reorganizado, página `RESULTS.md` e consolidação do TCC II. 128 testes offline aprovados; artefatos preservados. Publicação única autorizada em `ESAran/CHC-LLM-Benchmark`, por fast-forward e tag `v1.0.0`, sem início da V2.
 
 ## 1. Objetivo
 
@@ -14,10 +14,11 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 
 ## 2. Estado atual
 
-**Fase atual:** avaliação integral das três disciplinas MMLU **concluída e
-aprovada tecnicamente em 2026-11-09**, com fechamento local autorizado. Entregas 1, 2, 3A e 3B aprovadas.
+**Fase atual:** V1 encerrada pelo responsável; avaliação integral das três disciplinas MMLU **concluída e aprovada tecnicamente em 2026-11-09**. Apresentação editorial e resultados preparados para a publicação única autorizada. Entregas 1, 2, 3A e 3B aprovadas.
 A implementação 3C foi publicada em `e581438`, sem merge ou aceite automático;
 seus artefatos foram preservados e reutilizados na expansão autorizada.
+
+**Consolidação do TCC II:** a V1 foi declarada encerrada pelo responsável. O [documento técnico-científico](reports/TCC_II_CONSOLIDACAO_EXPERIMENTAL.md) reúne protocolo, implementação, histórico, testes, resultados, limitações e mapa de aproveitamento na monografia. A consolidação documental está disponível para revisão; não inicia a V2 nem altera os aceites históricos abaixo.
 
 **Escopo definitivo:** 545 Psicologia + 237 História mundial + 310 Biologia =
 1.092 questões test, substituindo a proposta de 1.000. Revisão de 3A, todos os
@@ -38,10 +39,12 @@ grupos. Anomalia: 11 pares duplicados em Psicologia preservados, sem conflito
 de gabarito; nenhum item test com alternativas repetidas. Não houve mudança do
 prompt, modelo, backend, método, limite ou fórmulas em função dos resultados.
 
-**Próximo passo:** propor comparação com modelo maior nas mesmas 1.092 questões,
-com preflight e protocolo preservado, e investigação separada de robustez A–D.
-Aguardar autorização antes de iniciar outro modelo. Branch de fechamento local:
-`codex/feat-mmlu-full-evaluation`; sem push ou merge.
+**Próximo passo:** revisar a consolidação e aproveitá-la na redação do TCC II.
+Para o TCC III, permanece proposta a comparação com modelo maior nas mesmas
+1.092 questões, com preflight e protocolo preservado, e investigação separada
+de robustez A–D. Aguardar autorização antes de iniciar outro modelo. Branch de trabalho:
+`codex/feat-mmlu-full-evaluation`; publicação desta V1 autorizada para `main`
+somente por fast-forward, sem reescrever histórico. Publicações futuras exigem novo pedido.
 
 ### Legenda de status
 
@@ -597,3 +600,60 @@ zero-shot, forward sem cache, scoring, desempate e métricas. Experimento separa
 de robustez por rotações balanceadas A–D, com remapeamento explícito do gabarito,
 resultados próprios e análise de estabilidade por conteúdo, sem substituir o run
 principal nem otimizar o protocolo a partir destas questões.
+
+
+### 2026-11-09 — Consolidação técnico-científica da V1 para o TCC II
+
+Criado `docs/reports/TCC_II_CONSOLIDACAO_EXPERIMENTAL.md`, confrontando normas,
+relatórios por entrega, código, configurações, testes e artefatos originais.
+Reúne fórmulas verificadas, protocolo/prompt exatos, arquitetura, decisões,
+resultados completos, limites de interpretação e mapa de uso na monografia;
+identifica 29 tabelas e nove PNGs existentes reutilizáveis.
+
+Conferência direta: 1.092 registros válidos, 593 acertos, acurácia
+0,543040293040293, entropia média 0,4553146632905629, 1.081 conteúdos distintos,
+33 empates e igualdade exata nos 60 itens sobrepostos do piloto. Softmax e
+entropia recalculados em Decimal de 70 dígitos; diferenças máximas da ordem
+de 1e-16. Quatro arquivos originais, manifesto, JSON, arquivo auditável e cinco
+PNGs integrais conferidos por hash; arquivo comparado byte a byte.
+
+Suíte offline: **128 testes, OK, 1,141 s**, saída 0, com
+`PYTHONPYCACHEPREFIX=/tmp/tcc-test-pycache PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -q`.
+Não houve nova inferência, experimento ou alteração de código, métricas,
+configuração e resultados. Lacunas registradas: ausência de
+`V1_FINAL_VALIDATION.md`/`V1_TEST_EVIDENCE.md`, logits completos do vocabulário
+não persistidos no run e limites de generalização/calibração/robustez.
+
+Próximo passo: revisão documental e redação do TCC II a partir das evidências;
+propostas de TCC III permanecem não executadas. Sem commit, push ou merge nesta
+consolidação e sem início da V2.
+
+### 2026-11-09, após 18h05 — Apresentação e publicação única da V1
+
+Horário autorizado confirmado antes das alterações: 21h05 UTC / 18h05 São Paulo.
+README reestruturado como apresentação do projeto; `RESULTS.md` reúne os resultados
+visuais, tabelas, cinco PNGs originais, exemplos auditáveis e limites metodológicos.
+A consolidação do TCC II acompanha este fechamento, sem substituir relatórios
+anteriores. Corrigida apenas uma marcação tipográfica na enumeração da consolidação.
+
+Verificação direta dos 1.092 registros: 593 acertos, 33 empates, 1.081 conteúdos
+distintos e frequências A–D coerentes. Manifesto, JSONs, gráficos e run arquivado
+preservados; bytes do arquivo compactado iguais aos quatro originais. Links e
+âncoras locais conferidos. Suíte `PYTHONPYCACHEPREFIX=/tmp/v1-publication-pycache PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -q`:
+**128 testes, OK, 1,141 s**. Nenhuma nova inferência ou alteração de código,
+configuração, fórmulas, protocolo e resultados.
+
+Escopo do commit editorial: `README.md`, `RESULTS.md`, `docs/ROADMAP.md` e
+`docs/reports/TCC_II_CONSOLIDACAO_EXPERIMENTAL.md`. Ambientes, pesos, caches,
+credenciais e temporários não integram a publicação. Os artefatos auditáveis
+já versionados permanecem deliberadamente incluídos.
+
+Destino autorizado e verificado: `https://github.com/ESAran/CHC-LLM-Benchmark`,
+branch padrão `main`. Atualização permitida somente por fast-forward a partir
+do histórico existente e identificação pela tag anotada `v1.0.0`; sem force push,
+squash, rebase ou merge commit. A confirmação dos refs remotos acompanha a conclusão
+da tarefa. A versão interna do pacote permanece `0.1.0`. Esta autorização é única,
+sem recorrência; demais publicações e o início da V2 dependem de novo pedido.
+
+Próximo passo: utilizar a consolidação na redação do TCC II e revisar separadamente
+as propostas de comparação entre modelos e robustez de posições para o TCC III.

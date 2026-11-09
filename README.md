@@ -1,455 +1,161 @@
-# LLM Benchmark — Desempenho e Incerteza
+<div align="center">
 
-> **Estado:** Entregas 1, 2, 3A e 3B aprovadas; 3C implementada, aguardando revisão. **Avaliação integral concluída e aprovada tecnicamente em 2026-11-09:** 1.092/1.092 test válidos nas três disciplinas, 593 acertos; sobreposição de 60 itens reproduzida exatamente. Fechamento local autorizado, sem push/merge. Veja a [avaliação integral](docs/reports/MMLU_FULL_EVALUATION.md) e o [roadmap](docs/ROADMAP.md).
+# LLM Benchmark
 
-## Visão geral
+**Desempenho e incerteza em múltipla escolha**
 
-Este repositório reúne o desenvolvimento de um **benchmark experimental em Python para avaliação de Large Language Models (LLMs)** em tarefas de múltipla escolha. A investigação analisa conjuntamente:
+Python · MLX-LM · MMLU · Apple Silicon
 
-- **Acurácia:** proporção de questões em que a alternativa de maior pontuação corresponde ao gabarito.
-- **Entropia normalizada de Shannon:** incerteza da distribuição de probabilidades **entre as alternativas da questão**, após normalização dentro desse conjunto.
+[Resultados](RESULTS.md) · [Consolidação do TCC II](docs/reports/TCC_II_CONSOLIDACAO_EXPERIMENTAL.md) · [Arquitetura](docs/ARCHITECTURE.md) · [Roadmap](docs/ROADMAP.md)
 
-A proposta é investigar relações entre desempenho, acertos, erros e incerteza, sem pressupor que menor entropia implica maior acurácia ou maior inteligência. O estudo é inspirado exploratoriamente em dimensões do modelo Cattell–Horn–Carroll (CHC), **sem reivindicar uma mensuração psicométrica de inteligência**.
+</div>
 
-O projeto não pretende, nesta etapa, formular um índice composto de “eficiência informacional”. A análise inicial mantém acurácia e entropia como medidas distintas.
+---
 
-## Escopo do MVP
+Um benchmark local, modular e auditável para investigar a relação entre **acurácia** e **entropia normalizada de Shannon** nas alternativas de questões de múltipla escolha.
 
-A primeira versão será implementada **no repositório principal do projeto**, de forma incremental e extensível:
+A **V1** reúne a infraestrutura validada, os diagnósticos de pontuação e uma avaliação do **Qwen2.5-0.5B-Instruct-bf16** em todos os registros `test` de três disciplinas do MMLU. O projeto apoia a investigação experimental do TCC II; suas evidências e limitações estão documentadas para a redação da monografia.
 
-| Item | Escolha inicial proposta |
-| --- | --- |
-| Linguagem | Python |
-| Dataset | `cais/mmlu`, revisão fixa, três disciplinas; `dev` técnico e `test` reservado ao piloto posterior |
-| Questões | 5 `dev` + 20 `test` por disciplina: 15 + 60, sem execução experimental em 3A |
-| Modelo de desenvolvimento | Qwen2.5-0.5B-Instruct em variante compatível com MLX-LM (candidata) |
-| Inferência | Local, utilizando MLX-LM em Apple Silicon |
-| Pontuação das alternativas | Rótulos de resposta (`A`, `B`, `C`, `D`), **condicionada à validação da tokenização e dos logits** |
-| Métricas | Acurácia e entropia normalizada |
-| Saída | Resultados por questão, resumo e metadados por execução |
+> **Como interpretar:** entropia baixa significa concentração entre os rótulos A–D, não garantia de acerto. A V1 não mede inteligência, não valida capacidades CHC e não define um índice de eficiência informacional.
 
-O equipamento de referência para a fase inicial é um **Mac com Apple M2 e 8 GB de memória unificada**. O tamanho do modelo, o uso de memória e a forma exata de pontuação serão confirmados com testes antes de considerar o piloto validado.
+## V1 em números
 
-O piloto de desenvolvimento **não será apresentado como avaliação científica conclusiva**. O subconjunto de `test` preparado em 3A fica reservado ao piloto posterior, sem ajustar o protocolo a partir dos seus resultados. O pedido de 3A substitui explicitamente a proposta anterior de até 20 questões de `validation`.
+| Cobertura | Desempenho | Distribuição das alternativas | Validação de software |
+| :--- | :--- | :--- | :--- |
+| **1.092/1.092** registros válidos | **593/1.092** acertos · **54,304%** | **0,455315** de entropia média | **128 testes** offline aprovados |
+| 3 disciplinas · 0 falhas técnicas | Macro entre disciplinas: **53,093%** | Condicionada aos quatro rótulos | 60 itens do piloto reproduzidos exatamente |
 
-## Arquitetura
+Percentuais e entropia acima estão arredondados. Fontes: [evidências integrais](docs/reports/MMLU_FULL_EVIDENCE.json), [relatório aprovado](docs/reports/MMLU_FULL_EVALUATION.md) e [registro de validação](docs/ROADMAP.md). São 1.092 registros e **1.081 conteúdos distintos**, pois 11 pares idênticos de Psicologia foram preservados.
 
-O sistema separa sete responsabilidades:
+![Acurácia por disciplina: Psicologia 323/545, História mundial 130/237 e Biologia 140/310](docs/reports/mmlu_full/accuracy_by_subject.png)
 
-1. **Datasets:** carregar, selecionar e adaptar questões para um formato interno comum.
-2. **Prompts:** produzir a entrada do modelo, preservando o formato e a versão utilizados.
-3. **Backends:** adaptar bibliotecas de inferência (inicialmente MLX-LM; no futuro, Transformers ou outras tecnologias compatíveis).
-4. **Scoring:** calcular pontuações das alternativas e transformá-las numa distribuição normalizada.
-5. **Metrics:** calcular medidas por questão e agregadas, de maneira independente do modelo.
-6. **Runner:** orquestrar uma execução configurada.
-7. **Storage:** registrar resultados, configurações e metadados de reprodutibilidade.
+**[Explorar os resultados →](RESULTS.md)** — tabelas por disciplina, distribuições de entropia, frequências A–D, massa original dos rótulos, exemplos e limitações.
 
-O formato compartilhado das questões e resultados será definido por estruturas tipadas (`schemas`). As configurações dos experimentos ficarão fora do código, preferencialmente em YAML.
+## O que foi entregue
 
-**Detalhamento técnico:** consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+- **Fundação testável:** contratos tipados, configuração YAML estrita, backend simulado e funções matemáticas compartilhadas.
+- **Inferência local validada:** backend MLX, template de chat fixado, tokenização contextual e extração dos logits da posição de resposta.
+- **Dados rastreáveis:** adaptador MMLU, revisão fixa, índices originais e hashes; texto e ordem das alternativas preservados.
+- **Execução auditável:** Runner sequencial e persistência de resultados individuais, configuração, resumo e metadados.
+- **Análise sem nova inferência:** agregações, JSON de evidências e figuras científicas a partir dos registros persistidos.
 
-## Métricas iniciais
+A V1 foi encerrada pelo responsável. O histórico de aprovações permanece no roadmap. Outros modelos, backends Transformers/APIs, calibração e rotações sistemáticas no MMLU ficam para propostas futuras, não implementadas nesta versão.
 
-Para uma questão com `K` alternativas (`K >= 2`), `p_i` representa a probabilidade **renormalizada entre essas alternativas**, com `Σ p_i = 1`:
+## Protocolo experimental
 
-\[
-H_{norm} = \frac{-\sum_{i=1}^{K} p_i \log_2(p_i)}{\log_2(K)}
-\]
+| Componente | Configuração da avaliação integral |
+| :--- | :--- |
+| Modelo | `mlx-community/Qwen2.5-0.5B-Instruct-bf16` |
+| Revisão do modelo | `56d07e766edd7159fbe12ed12d9cf114bf38bf1e` |
+| Dataset | `cais/mmlu` · revisão `c30699e8356da336a370243923dbaf21066bb9fe` |
+| Disciplinas | `high_school_psychology`, `high_school_world_history`, `high_school_biology` |
+| Seleção integral | `mmlu-full-test-v1` · todos os índices `test`, sem amostragem |
+| Prompt | `current-no-enumeration-v1` · zero-shot · chat template padrão do snapshot |
+| Pontuação | `label_next_token` de A/B/C/D sem espaços; IDs contextuais 32/33/34/35 |
+| Inferência | BF16 · batch 1 · forward completo **sem KV cache** · posição `T−1` |
+| Normalização | Logits promovidos antes do softmax; probabilidades condicionadas a A–D e massa original registradas |
+| Desempate | `lowest_index`: menor índice na ordem original |
+| Ambiente de referência | Apple M2 · 8 GiB de memória unificada · Python 3.12.2 · MLX 0.32.4 · MLX-LM 0.32.2 |
 
-Por convenção, `0 · log₂(0) = 0`. A entropia normalizada pertence ao intervalo `[0, 1]` quando a distribuição é válida: próximo de `0` indica maior concentração em uma alternativa; próximo de `1`, maior uniformidade entre alternativas.
+A entrada passou pelo preflight: **64–788 tokens**, dentro do limite de 1.024, sem truncamento ou exclusão. Caminhos com e sem cache podem produzir logits diferentes; não são intercambiáveis neste protocolo. O backend inicial aceita somente o snapshot validado, não qualquer modelo informado por nome.
 
-A predição é o índice da alternativa com maior probabilidade. A acurácia de uma execução é a média dos indicadores de acerto (`0` ou `1`) das questões avaliadas.
+O [protocolo completo](docs/reports/TCC_II_CONSOLIDACAO_EXPERIMENTAL.md#5-protocolo-experimental-final) registra o prompt exato, as versões, o run e os hashes. A [comparação de prompts](docs/reports/PROMPT_COMPARISON.md) documenta as alternativas consideradas antes do MMLU.
 
-**Limitação de interpretação:** essa é a entropia da **distribuição condicionada ao conjunto de alternativas pontuadas**, não a entropia de todo o vocabulário da LLM nem uma entropia semântica de respostas abertas. Diferentes estratégias de pontuação podem produzir distribuições distintas e precisam ser identificadas nos resultados.
+## Como o benchmark se organiza
 
-## Estrutura prevista
-
-```text
-.
-├── configs/
-│   └── pilot_mmlu.yaml
-├── docs/
-│   ├── ARCHITECTURE.md
-│   └── ROADMAP.md
-├── src/
-│   └── benchmark/
-│       ├── cli.py
-│       ├── runner.py
-│       ├── schemas.py
-│       ├── datasets/
-│       │   ├── base.py
-│       │   └── mmlu.py
-│       ├── backends/
-│       │   ├── base.py
-│       │   └── mlx.py
-│       ├── scoring/
-│       │   ├── labels.py
-│       │   └── normalization.py
-│       ├── prompts.py
-│       ├── metrics.py
-│       └── storage.py
-├── tests/
-├── outputs/              # gerados durante a execução; não versionar por padrão
-├── pyproject.toml
-├── README.md
-└── .gitignore
+```mermaid
+flowchart LR
+    D[Dataset e manifesto] --> P[Prompt versionado]
+    P --> B[Backend MLX ou simulado]
+    B --> S[Scoring]
+    S --> M[Métricas]
+    M --> O[Resultados persistidos]
+    O --> A[Análise e figuras]
+    C[Configuração YAML] --> R[Runner]
+    R -. coordena .-> D
+    R -. coordena .-> B
+    R -. persiste .-> O
 ```
 
-Esta árvore representa a **arquitetura desejada**, não uma lista de arquivos já implementados. Os módulos devem ser introduzidos conforme necessários, mantendo o projeto pequeno e compreensível.
+| Área | Arquivos principais | Responsabilidade |
+| :--- | :--- | :--- |
+| Contratos e configuração | `schemas.py`, `config.py` | Invariantes, validação e protocolo explícito |
+| Datasets | `datasets.py`, `mmlu.py`, `mmlu_selection.py` | Questões e procedência, sem conhecimento do modelo |
+| Prompts e backends | `prompts.py`, `backends/` | Texto versionado, template, tokenização e logits |
+| Scoring e métricas | `scoring/`, `numerics.py`, `metrics.py` | Softmax estável, argmax, acurácia e entropia |
+| Execução e persistência | `runner.py`, `cli.py`, `storage.py`, `results.py` | Fluxo, falhas explícitas e artefatos por execução |
+| Análise | `analysis.py`, `analysis_report.py`, `diagnostics/` | Agregações, auditorias e relatórios |
 
-## Etapas de desenvolvimento
+Os módulos ficam em [`src/benchmark/`](src/benchmark/). [`configs/`](configs/) guarda configurações; [`tests/`](tests/) guarda os testes offline. A [arquitetura](docs/ARCHITECTURE.md) preserva também as decisões e propostas históricas; a tabela acima descreve o código implementado.
 
-1. Criar a estrutura, os formatos de dados, a configuração e testes com um **backend simulado**.
-2. Implementar e testar matematicamente a normalização, a entropia e a acurácia.
-3. Integrar MLX-LM e realizar **diagnóstico de tokenização, formato de prompt e acesso aos logits**.
-4. Preparar a seleção MMLU em 3A; após revisão e autorização de 3B, executar a validação técnica em `dev` e o piloto reservado em `test`.
-5. Registrar resultados por questão, configurações e versões, analisar limitações e evoluir gradualmente.
+## Consultar, testar e reproduzir
 
-O backend Transformers, a execução em servidores, novas métricas e novos datasets pertencem a fases futuras; **não fazem parte do MVP**.
+### Consultar as evidências — sem executar uma LLM
 
-## Execução e instalação
+Comece por [RESULTS.md](RESULTS.md). Os [gráficos](docs/reports/mmlu_full/), o [manifesto](docs/reports/MMLU_FULL_SELECTION_MANIFEST.json), o [JSON de evidências](docs/reports/MMLU_FULL_EVIDENCE.json) e o [run completo compactado](docs/reports/mmlu_full/run.tar.gz) já estão no repositório.
 
-### Entrega 1 implementada
+O arquivo do run contém `config.yaml`, `metadata.json`, `results.jsonl` e `summary.json`. O JSON compacto conserva os valores individuais e hashes; os vetores completos dos IDs de entrada estão no arquivo do run. Os logits de todo o vocabulário não foram persistidos, apenas os quatro escores, probabilidades originais e massa dos rótulos.
 
-O pacote em `src/benchmark/` contém contratos em dataclasses, adaptador sintético,
-prompt versionado, contrato de backend, backend simulado, softmax estável, métricas
-puras, configuração YAML estrita, runner sequencial, armazenamento e CLI. As fórmulas
-compartilhadas ficam em `numerics.py` e são reutilizadas na validação dos contratos. O adaptador
-sintético fica em `datasets.py`; ainda não há necessidade de um pacote de adaptadores.
-A configuração executável é [`configs/synthetic.yaml`](configs/synthetic.yaml).
-A árvore da seção anterior continua sendo a estrutura prevista para as etapas futuras.
+### Testar o núcleo e a simulação
 
-O exemplo contém três questões originais, com 2, 3 e 4 alternativas. O backend
-`controlled_scores`, revisão `v1`, atribui o escore `float(i)` à alternativa de índice
-`i`, sem consultar o gabarito. Isso testa o fluxo; **não representa respostas de uma
-LLM nem resultados do MMLU**. Não há download de datasets ou pesos.
-
-### Comandos verificados
-
-Requer Python 3.11 ou superior. A validação local usou Python 3.12.2, PyYAML 6.0.2,
-setuptools 69.2.0 e wheel 0.45.1, já disponíveis no ambiente. Os comandos abaixo
-foram executados na raiz do repositório. O ambiente virtual reutiliza essas
-dependências instaladas; `--no-deps --no-build-isolation` pressupõe sua disponibilidade.
-`--no-index` impede consultar um índice de pacotes.
-
-```bash
-python3 -m venv --system-site-packages .venv
-.venv/bin/python -m pip install --no-index --no-deps --no-build-isolation .
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/llm-benchmark --config configs/synthetic.yaml
-```
-
-Na revalidação das correções, o `pip` do ambiente virtual ficou parado ao importar
-seus próprios módulos e foi interrompido antes da instalação. A atualização do
-mesmo ambiente foi concluída sem downloads usando o `pip` do sistema:
-
-```bash
-python3 -m pip --python .venv/bin/python install --no-index --no-deps --no-build-isolation .
-```
-
-Também é possível executar o mesmo ponto de entrada como módulo:
-
-```bash
-.venv/bin/python -m benchmark.cli --config configs/synthetic.yaml
-```
-
-A instalação comum acima foi validada. A instalação editável (`-e .`) apresentou
-um problema neste ambiente macOS: o arquivo `.pth` recebeu a marca de oculto e
-foi ignorado pelo Python. Por isso, ela não é o caminho documentado de execução.
-Após modificar o código, reinstale o pacote ou use diretamente o código-fonte:
+O núcleo requer **Python ≥ 3.11 e PyYAML 6.x**; não precisa de MLX, pesos ou conexão com Hugging Face para os testes. Em um ambiente já preparado, execute da raiz:
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+
+# Controle de software: três questões autorais, sem inferência real.
 PYTHONPATH=src .venv/bin/python -m benchmark.cli --config configs/synthetic.yaml
 ```
 
-O uso direto do código-fonte também permite identificar o checkout Git nos
-metadados. Na instalação comum, o pacote em `site-packages` não contém o
-checkout: commit e estado de alterações ficam nulos, sem atribuir ao pacote
-instalado uma revisão não comprovada.
+Para preparar um ambiente novo, a definição do pacote está em [`pyproject.toml`](pyproject.toml):
 
-Cada execução cria uma nova pasta `outputs/<timestamp_UTC>_<uuid>/`, contendo:
-
-- `config.yaml`: configuração completa utilizada.
-- `metadata.json`: identificação da simulação, revisões, ordem dos IDs, semente,
-  ambiente, versões, commit e estado de alterações locais, horários, contagens e
-  eventual `close_error`.
-- `results.jsonl`: questão e alternativas em ordem, gabarito, prompt exato,
-  método, escores, probabilidades condicionais, predição, acerto, entropia e erro.
-- `summary.json`: contagens, acurácia e média da entropia nas questões válidas.
-
-`metadata.json` é publicado por último, após gravar, fechar e sincronizar os
-demais arquivos. **Uma pasta sem esse arquivo final é incompleta**, mesmo que
-contenha `summary.json` ou `metadata.json.tmp`. Em uma falha de escrita, a pasta
-parcial é preservada para inspeção e a CLI retorna erro; execute novamente para
-criar uma nova pasta. Não há retomada automática.
-
-O exemplo completo produz 3 questões válidas, nenhuma falha e acurácia sintética
-`2/3`. Esse valor decorre dos escores controlados e serve apenas como verificação
-do software. Os testes cobrem referências matemáticas independentes, entradas
-inválidas, empates, seleção reproduzível, falhas parciais/totais e persistência
-sem perda de precisão nem sobrescrita.
-As regressões de F1/F2/F3 também cobrem abertura, escrita parcial, flush,
-fechamento, sincronização e publicação dos arquivos, encerramento do backend,
-erros combinados e inconsistências entre contratos.
-
-### Convenções e limites da simulação
-
-- A configuração rejeita campos desconhecidos, ausentes, chaves YAML duplicadas
-  e valores que ativariam funcionalidades posteriores. O limite da fixture é de
-  1 a 3 questões. O diretório de saída relativo é resolvido a partir do diretório
-  de trabalho do comando.
-- A seleção embaralha a fixture com uma instância local de `random.Random(seed)`
-  e aplica o limite. Os IDs e sua ordem são sempre registrados.
-- O prompt `synthetic_multiple_choice_v1` usa identificadores numéricos para
-  suportar diferentes quantidades de alternativas. O método `simulated_scores`
-  registra a unidade `synthetic_logits`, sem tokenização ou template de chat.
-  Isso não define nem valida o futuro protocolo de rótulos `A`–`D`.
-- As probabilidades são condicionadas ao conjunto de alternativas. A validação
-  exige valores finitos em `[0, 1]` e soma 1, com tolerância absoluta de `1e-12`.
-  Empates de probabilidade usam o menor índice na ordem original.
-- Falhas por questão são registradas com métricas nulas; os agregados usam
-  somente as questões válidas e exibem o denominador em `valid_count`. Se nenhuma
-  questão for válida, acurácia e média de entropia são nulas. Esse tratamento
-  operacional não estabelece critérios de exclusão para o piloto científico.
-- A CLI retorna `0` no sucesso, `1` quando há falhas por questão ou no encerramento
-  do backend e `2` para erros
-  de configuração, inicialização ou acesso aos arquivos. Erros de inicialização
-  interrompem a execução antes da persistência de resultados; uma falha adicional
-  de encerramento é informada sem substituir o erro original.
-- Quando só o encerramento falha, os resultados calculados são preservados e
-  `close_error` é registrado. O status é `completed_with_errors` se houver itens
-  válidos, ou `failed` se todos os itens falharam. Esse erro operacional não muda
-  as métricas calculadas por questão.
-- A aplicação não reabre nem sobrescreve pastas de execuções anteriores. Sem
-  um checkout Git identificável, commit e estado de alterações ficam nulos.
-  Saídas, ambiente virtual, caches e pesos são ignorados pelo Git por padrão.
-- O protocolo de gravação trata exceções de I/O, mas não garante recuperação
-  após queda de energia ou interrupção abrupta do processo. Falhas que impeçam
-  a própria escrita são reportadas como erros, sem prometer persistência.
-
-Na Entrega 1 não havia backend real. A integração MLX da Entrega 2B está descrita
-abaixo; backend Transformers, APIs e pontuação de sequências continuam fora do escopo. O adaptador MMLU preparado em 3A está conectado ao Runner em 3B, descrita abaixo. Na simulação, a massa original dos rótulos no vocabulário
-permanece nula, pois o backend simulado não fornece essa evidência. A Entrega 1 valida
-apenas contratos, matemática e fluxo; **o MVP com modelo real ainda não está validado**.
-
-### Diagnóstico isolado da Entrega 2A
-
-O script [`diagnostics/mlx_labels.py`](diagnostics/mlx_labels.py) executa a investigação
-de MLX-LM em ambiente separado, com dependências fixadas em
-[`diagnostics/mlx-requirements.txt`](diagnostics/mlx-requirements.txt). Não altera o
-runner ou a configuração sintética. Procedimento, revisão do modelo, comandos,
-resultados e limitações estão no [relatório de diagnóstico](docs/reports/MLX_DIAGNOSTIC.md).
-Rótulos sem espaço foram viáveis no template testado; fronteiras de tokenização,
-precisão BF16 e diferenças entre caminhos com/sem cache exigem tratamento explícito.
-O protocolo inicial e o início de 2B foram aprovados pelo responsável em 2026-11-06;
-a implementação descrita abaixo foi aprovada tecnicamente no fechamento da Entrega 2.
-
-A [investigação comportamental complementar](docs/reports/MLX_BEHAVIOR_VALIDATION.md)
-compara quatro perguntas, rotações de alternativas e instruções explícitas por
-meio de `diagnostics/mlx_labels.py --behavior`. As variantes são diagnósticas;
-naquele diagnóstico não houve adoção definitiva. A comparação posterior fundamentou
-a aprovação explícita do protocolo provisório usado em 2B.
-
-### Entrega 2B — execução real local, concluída e aprovada
-
-O Runner seleciona o backend por `model.backend`. A configuração
-[`configs/controlled_mlx.yaml`](configs/controlled_mlx.yaml) usa 16 apresentações
-controladas (quatro questões × quatro rotações), sem MMLU. O template configurável
-`current-no-enumeration-v1` preserva exatamente o texto aprovado em
-[2A](docs/reports/PROMPT_COMPARISON.md); o backend aplica somente o chat template
-do snapshot, sem conhecer a pergunta, o gabarito ou a instrução de múltipla escolha.
-
-O protocolo provisório é zero-shot, candidatos `A`–`D` sem espaços, posição `T-1`,
-batch 1 e forward completo **sem KV cache**. Logits BF16 são promovidos a float32
-e convertidos a floats Python antes do softmax compartilhado. São persistidos
-os escores, probabilidades condicionais, probabilidades originais, massa válida,
-IDs contextuais, posição, precisão, revisão, hashes e template efetivo.
-**Cache e forward completo podem produzir logits diferentes**; não são
-intercambiáveis neste protocolo.
-
-MLX é opcional: a instalação básica e os testes offline continuam exigindo apenas
-as dependências da fundação. No Apple Silicon, use um ambiente separado com
-as versões de [`diagnostics/mlx-requirements.txt`](diagnostics/mlx-requirements.txt).
-A configuração exige um snapshot **já disponível localmente**; não baixa pesos.
-O manifesto em `backends/mlx.py` verifica os arquivos do snapshot aprovado.
-O limite configurável de entrada é de até 1024 tokens nesta etapa, com erro
-explícito em vez de truncamento. Não foram validados prompts longos.
-
-Com o ambiente MLX de 2A disponível, execute na raiz:
-
-```sh
-HF_HUB_OFFLINE=1 PYTHONPATH=src \
-.cache/mlx-diagnostic/venv/bin/python -m benchmark.cli --config configs/controlled_mlx.yaml
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install .
 ```
 
-A validação desta entrega reutilizou o ambiente temporário de 2A e o mesmo
-snapshot em `.cache/`; o comando exato está no relatório. `snapshot_path` e
-`output.directory` são relativos ao diretório de trabalho quando não absolutos.
-Use caminhos relativos em configurações compartilhadas, sem dados pessoais.
+A instalação pode acessar o índice de pacotes. Os comandos com `PYTHONPATH=src` executam o checkout atual, evitando utilizar uma cópia instalada antiga. Os problemas locais de instalação encontrados na fundação estão registrados na [validação](docs/VALIDATION_DELIVERY_1_FINAL.md); não foi repetida uma instalação limpa no fechamento editorial da V1.
 
-O backend inicial aceita apenas o snapshot Qwen aprovado. Novos modelos exigem
-manifesto e validação próprios. Templates são selecionados pela configuração e
-implementados em `prompts.py`, separados do backend; adicionar um template não
-altera a inferência, mas uma nova convenção experimental requer aprovação.
-Erros de resposta do modelo são registros válidos com `correct: false`; falhas de
-execução/tokenização são erros explícitos com métricas ausentes. As regras de
-persistência e encerramento da fundação continuam aplicadas.
+A simulação deve produzir **2/3 acertos** por construção dos escores controlados. Isso valida o fluxo, não representa desempenho de uma LLM ou do MMLU.
 
-Resultado controlado verificado: **16 válidas, 0 falhas operacionais, 11/16 acertos**;
-não é um score MMLU nem evidência científica de generalização. Os 71 testes
-incluem os 54 da fundação e 17 novos testes offline; veja
-[VALIDATION_DELIVERY_2B.md](docs/reports/VALIDATION_DELIVERY_2B.md).
+### Reproduzir a execução real — novo run
 
-## Preparação MMLU — Entrega 3A
+É necessário Apple Silicon com Metal, dependências opcionais e os **snapshots locais exatos**. As configurações não baixam pesos nem dados automaticamente. Requisitos: [MLX](diagnostics/mlx-requirements.txt), [MMLU](diagnostics/mmlu-requirements.txt) e, para figuras, [análise](diagnostics/analysis-requirements.txt).
 
-O adaptador independente `src/benchmark/mmlu.py` preserva texto, quatro alternativas,
-gabarito, disciplina e posição original. `configs/mmlu_selection.json` fixa revisão,
-seed 42, arquivos e hashes. O script `diagnostics/mmlu_dataset.py` prepara 15 questões
-de `dev` e 60 de `test` e conta tokens com o tokenizer local aprovado em 2B.
-O script de preparação não carrega pesos nem executa avaliação. O consumo pelo Runner foi acrescentado separadamente em 3B.
+A [validação integral](docs/reports/MMLU_FULL_EVALUATION.md) descreve preparação, preflight, auditoria e recursos. Com esse ambiente já preparado e a integridade verificada:
 
-As dependências opcionais estão em `diagnostics/mmlu-requirements.txt`; use um
-ambiente separado do núcleo. Com essas dependências instaladas e o snapshot local
-já disponível, a preparação inicial pode ser reproduzida na raiz:
-
-```sh
-PYTHONPATH=src python diagnostics/mmlu_dataset.py --download \
-  --tokenizer-snapshot .cache/mlx-diagnostic/huggingface/hub/models--mlx-community--Qwen2.5-0.5B-Instruct-bf16/snapshots/56d07e766edd7159fbe12ed12d9cf114bf38bf1e \
-  --output outputs/mmlu-preparation
+```bash
+# Cria NOVA avaliação real. Não é necessário para ler os resultados publicados.
+HF_HUB_OFFLINE=1 PYTHONPATH=src python -m benchmark.cli --config configs/mmlu_full_test.yaml
 ```
 
-`--download` autoriza apenas os seis Parquets fixados (377.382 bytes); o tokenizer
-continua exclusivamente local. Para repetir, omita a opção, use `HF_HUB_OFFLINE=1`
-e escolha outra pasta de saída. Nenhum arquivo existente será sobrescrito.
-`selected_questions.jsonl` guarda conteúdo e procedência; `manifest.json`, publicado
-por último, guarda seleção, hashes, contagem de tokens e duplicações. Pastas sem o
-manifesto final não devem ser consumidas. Os artefatos de trabalho ficam ignorados.
+Use o Python do ambiente MLX preparado. `snapshot_path` e diretórios relativos são resolvidos a partir da raiz de execução. A configuração aponta para o manifesto aprovado; não selecionar outros índices ou alterar o prompt para obter mais acertos.
 
-A seleção verificada tem entradas de 72 a 574 tokens, nenhuma acima do limite de
-1024. Há alternativas A/C idênticas em `high_school_biology/dev/2`; o conteúdo foi
-preservado e sinalizado. Consulte o [relatório](docs/reports/MMLU_DATASET_VALIDATION.md)
-e o [manifesto auditável](docs/reports/MMLU_SELECTION_MANIFEST.json). A 3A foi aprovada com essa anomalia preservada e uso exclusivamente técnico de dev.
+### O que cada execução preserva
 
-## Piloto MMLU pelo Runner — Entrega 3B
+`results.jsonl` registra questão, procedência, prompt, escores, probabilidades, predição, gabarito, acerto e entropia. `metadata.json` inclui modelo, revisões, versões, hashes, código, horários e eventuais falhas de encerramento. Configuração e resumo completam a trilha de reprodução.
 
-`configs/mmlu_dev.yaml` e `configs/mmlu_test.yaml` usam `mmlu-3a-v1`, revisão e
-índices congelados. `dataset.subjects` permite uma ou mais disciplinas na ordem
-aprovada; `limit` deve ser exatamente 5 por disciplina em dev ou 20 em test.
-O manifesto e todos os Parquets selecionados são verificados antes da carga do
-modelo. Não há download automático nem seleção por resultado.
+Os metadados finais são publicados por último: uma pasta sem `metadata.json` é incompleta. Falhas técnicas têm métricas nulas e denominadores explícitos; respostas erradas do modelo continuam válidas. Não há sobrescrita de runs nem retomada automática após interrupção. Pesos, ambientes, caches e `outputs/` ficam ignorados; o arquivo auditável publicado foi incluído deliberadamente como evidência.
 
-Use o ambiente MLX de 2B com as dependências MMLU de 3A e os snapshots locais:
+## Limites que acompanham os resultados
 
-```sh
-HF_HUB_OFFLINE=1 PYTHONPATH=src python -m benchmark.cli --config configs/mmlu_dev.yaml
-```
+- Um modelo de classe 0,5B e três disciplinas não representam todo o MMLU ou outras famílias de LLMs.
+- O piloto de 60 questões está contido nos 1.092 registros; sua reprodução é uma verificação técnica, não confirmação independente.
+- A entropia usa a distribuição **condicionada aos rótulos**, não respostas livres nem probabilidade calibrada de acerto.
+- Os **33 empates** e a regra `lowest_index` podem afetar frequências. BF16 tem precisão limitada; não se demonstrou que explique sozinho todos os empates.
+- **B foi selecionada 415 vezes**, contra **270 gabaritos B**. Frequências isoladas não identificam causalmente viés de posição.
+- **11 pares idênticos** de Psicologia e a anomalia de alternativas repetidas em Biologia `dev/2` foram preservados. Dev é exclusivamente técnico.
 
-Antes de executar test, audite a pasta retornada com
-`diagnostics/mmlu_pilot_validation.py --run <pasta-dev> --output <evidencia-dev.json>`
-usando o mesmo `PYTHONPATH=src`. A auditoria não exige acurácia mínima e retorna erro
-se houver falha técnica ou persistência incompleta. Só após sucesso técnico executar
-a CLI com `configs/mmlu_test.yaml`. A CLI individual não automatiza essa sequência.
+## Documentação para aprofundar
 
-Na validação de 3B, dev teve 15 válidas/0 falhas (6 acertos) e test teve 60 válidas/0
-falhas (34 acertos, acurácia 56,6667%, entropia média 0,4785157438890066). Dev permaneceu
-exclusivamente técnico; o item de biologia com A/C iguais foi preservado. Nenhum
-parâmetro foi ajustado entre as fases. Os registros incluem procedência, prompt,
-tokens, escores, probabilidades, massa original, predição, gabarito e entropia.
-O [relatório](docs/reports/MMLU_PILOT_VALIDATION.md) e o
-[JSON compacto](docs/reports/MMLU_PILOT_EVIDENCE.json) foram aprovados tecnicamente em 2026-11-08.
+| Leitura | Conteúdo |
+| :--- | :--- |
+| [Resultados visuais](RESULTS.md) | Visão acessível dos achados e das limitações |
+| [Consolidação experimental do TCC II](docs/reports/TCC_II_CONSOLIDACAO_EXPERIMENTAL.md) | Referência autocontida: metodologia, fórmulas, histórico, testes e evidências |
+| [Avaliação integral](docs/reports/MMLU_FULL_EVALUATION.md) | 1.092 registros, reprodução, recursos, anomalias e aceite |
+| [Piloto](docs/reports/MMLU_PILOT_VALIDATION.md) · [Análise do piloto](docs/reports/MMLU_EXPLORATORY_ANALYSIS.md) | Dev técnico e 60 test, mantidos separados |
+| [Diagnóstico MLX](docs/reports/MLX_DIAGNOSTIC.md) · [Comportamento](docs/reports/MLX_BEHAVIOR_VALIDATION.md) · [Prompts](docs/reports/PROMPT_COMPARISON.md) | Evidências que fundamentaram a pontuação e o formato adotados |
+| [Integração MLX](docs/reports/VALIDATION_DELIVERY_2B.md) · [Seleção MMLU](docs/reports/MMLU_DATASET_VALIDATION.md) | Contratos, validação local e integridade dos dados |
+| [Arquitetura](docs/ARCHITECTURE.md) · [Roadmap](docs/ROADMAP.md) · [AGENTS.md](AGENTS.md) | Decisões, progresso e regras de desenvolvimento |
 
-## Análise exploratória — Entrega 3C
-
-O módulo `benchmark.analysis` calcula descritivas dos registros `test`, mantendo
-os `dev` fora da análise experimental. `benchmark.results` reconstrói os schemas
-e confere os artefatos; `benchmark.analysis_report` gera Markdown, JSON com todos
-os valores e quatro PNGs. A entrada do relatório exige o piloto de 60 test e os
-hashes aprovados; não depende de pesos, tokenizer, Parquets ou rede.
-
-Com as dependências opcionais de `diagnostics/analysis-requirements.txt` disponíveis:
-
-```sh
-XDG_CACHE_HOME=/tmp/mmlu-analysis-cache MPLBACKEND=Agg MPLCONFIGDIR=/tmp/mmlu-analysis-mpl \
-PYTHONPYCACHEPREFIX=/tmp/mmlu-3c-pycache PYTHONPATH=src \
-  .venv/bin/python -m benchmark.analysis_report \
-  --date 2026-11-08 --output docs/reports
-```
-
-É necessário preservar as pastas de resultados identificadas no JSON de 3B.
-O comando não executa a LLM nem modifica os artefatos originais. Agregações vazias
-têm contagem zero e métricas nulas; dados dev/mistos e IDs duplicados são recusados.
-A acurácia usa registros válidos, com falhas e denominadores explícitos.
-
-O [relatório](docs/reports/MMLU_EXPLORATORY_ANALYSIS.md) mostra 34/60 acertos,
-entropia média 0,346090 nos acertos e 0,651688 nos erros. Lista todos os quatro
-erros com máx. p condicional ≥ 0,90 e 12 exemplos escolhidos por uma regra simétrica.
-Isso não demonstra calibração, viés de posição ou diferenças cognitivas. Os valores
-completos, regras e hashes estão no [JSON](docs/reports/MMLU_EXPLORATORY_EVIDENCE.json).
-A 3C aguarda revisão técnica; commit e publicação na branch de feature autorizados em 2026-11-08.
-
-## Avaliação integral das três disciplinas MMLU
-
-A expansão autorizada substitui a proposta de 1.000 questões por **todos os 1.092
-índices test**: Psicologia 545, História mundial 237 e Biologia 310. O conjunto
-`mmlu-full-test-v1` tem manifesto próprio, sem amostragem (seed `null`), preserva
-11 pares duplicados na origem e usa a revisão de 3A. O piloto `mmlu-3a-v1`
-continua disponível sem alterações.
-
-`configs/mmlu_full_test.yaml` seleciona esse conjunto pelo Runner. O carregador
-confere o hash do manifesto, os Parquets e todos os índices; prompt, backend,
-limite de 1024 tokens e scoring permanecem iguais aos aprovados. Preflight:
-1.092 entradas de 64–788 tokens, todas contextualmente válidas para A–D.
-
-```sh
-# Cria uma NOVA avaliação real; não executar apenas para consultar resultados.
-HF_HUB_OFFLINE=1 PYTHONPATH=src .cache/mlx-diagnostic/venv/bin/python \
-  -m benchmark.cli --config configs/mmlu_full_test.yaml
-```
-
-A [avaliação integral](docs/reports/MMLU_FULL_EVALUATION.md) registra acurácia global
-593/1.092 (54,3040%) e macro 53,0932%. Os 60 itens do piloto repetiram exatamente;
-a expansão os contém e não constitui validação independente. Análise reutiliza
-`benchmark.analysis` e os gráficos de 3C, acrescentando a macro e histogramas.
-[JSON de evidências](docs/reports/MMLU_FULL_EVIDENCE.json),
-[manifesto](docs/reports/MMLU_FULL_SELECTION_MANIFEST.json) e
-[arquivo completo do run](docs/reports/mmlu_full/run.tar.gz) permitem auditoria.
-O arquivo compactado é uma evidência deliberada; `outputs/`, caches e pesos
-continuam ignorados. Nenhum resultado anterior foi substituído. Avaliação integral
-aprovada tecnicamente em 2026-11-09, com fechamento local autorizado.
-O relatório documenta 33 empates no maior logit (`lowest_index`), a limitação BF16,
-B em 415 predições versus 270 gabaritos e 1.081 conteúdos distintos em 1.092 registros.
-Essas observações não estabelecem causalmente viés de posição.
-
-## Reprodutibilidade e transparência
-
-Cada execução deverá registrar, no mínimo:
-
-- identificação e versão/revisão do dataset, partição e IDs das questões;
-- identificação e revisão do modelo, backend e dependências;
-- prompt efetivamente enviado (inclusive o template de chat, se usado);
-- método de pontuação, rótulos, escores e probabilidades;
-- alternativa prevista, gabarito, acerto/erro e entropia por questão;
-- parâmetros de seleção, semente, configuração utilizada e versão do código;
-- estatísticas agregadas e eventuais falhas ou questões descartadas.
-
-Pesos dos modelos, caches, credenciais e resultados volumosos não devem ser enviados automaticamente ao repositório. A publicação de dados derivados deverá observar licenças e condições de uso dos datasets e modelos utilizados.
-
-## Referências técnicas
-
-- [MLX-LM](https://github.com/ml-explore/mlx-lm) — biblioteca de inferência para modelos de linguagem em MLX.
-- [Hugging Face Transformers](https://huggingface.co/docs/transformers/index) — biblioteca alternativa para inferência, inicialmente fora do escopo.
-- [LM Evaluation Harness (EleutherAI)](https://github.com/EleutherAI/lm-evaluation-harness) — referência arquitetural, sem intenção de reproduzir toda a sua complexidade.
-- [Guia de tarefas do LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md) — referência para configuração de tarefas de múltipla escolha.
-
-## Status das decisões
-
-- **Metodologia estabelecida:** múltipla escolha, acurácia por alternativa de maior probabilidade e entropia normalizada entre alternativas.
-- **Plano técnico inicial:** Python, MLX-LM local, MMLU e um Qwen2.5 pequeno.
-- **Protocolo provisório aprovado para 2B:** prompt sem enumeração, chat template do snapshot, zero-shot, rótulos nus e forward completo sem cache.
-- **Concluído:** aceite técnico da integração 2B em 2026-11-06, com 71 testes novamente aprovados.
-- **3A concluída e aprovada:** revisão, seed, índices, hashes e orçamento de tokens de 75 questões MMLU; anomalia A/C de biologia mantida por decisão explícita.
-- **3B concluída e aprovada:** fases dev/test sem falhas técnicas, 100 testes novamente aprovados; fechamento em commit local exclusivo autorizado.
-- **3C aguardando revisão:** análise dos 60 test, quatro PNGs, evidência completa e 117 testes aprovados; sem nova inferência; publicação autorizada na branch de feature, mantendo o aceite técnico pendente.
-
-Consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) antes de alterar contratos, pontuação ou fórmulas.
+**Identificação da versão:** `v1.0.0` denomina o fechamento do ciclo experimental V1 no Git. A versão interna do pacote permanece `0.1.0`; não foi alterada apenas para coincidir com a tag. As propostas para TCC III estão documentadas, sem início da V2.
