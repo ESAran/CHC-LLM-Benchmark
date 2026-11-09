@@ -1,0 +1,4 @@
+# Somente gráficos; agregações/testes básicos usam biblioteca padrão e o núcleo.
+matplotlib==3.9.1.post1
+numpy==1.26.4
+pillow==10.4.0

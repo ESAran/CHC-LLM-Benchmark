@@ -1,0 +1,2700 @@
+{
+  "analysis_version": "mmlu-exploratory-v1",
+  "date": "2026-11-08",
+  "status": "pending_technical_review",
+  "source": {
+    "pilot_evidence_sha256": "974f22e63c06c753182ac574b8199a1579115cce2fd47f59eb35bc6f329ba6ed",
+    "selection_manifest_sha256": "2e030192cdba40f31ec35ab33b32da1cdfe0207501e09b0edbdd1107dfd7fae1",
+    "run_id": "20261107T135948062030Z_5a52c49279c246fc8bc3dfdaef2bc1bb",
+    "run_directory": "outputs/mmlu-pilot-test/20261107T135948062030Z_5a52c49279c246fc8bc3dfdaef2bc1bb",
+    "artifact_sha256": {
+      "config.yaml": "50e0ad51d941ce155087a830b4b02cabc4614a91caa1e8351c6f196157ee003d",
+      "metadata.json": "1cb276c03c90b15cda107924457ecb256fb43344c7e68635cf8e6574a63e9f18",
+      "results.jsonl": "e785c6789a077279cb44062f78ba4bdb3ecbd3951e5691ebd25f74c3f023da80",
+      "summary.json": "c4c3531e250d794f2a1c295dd41280d9cfadb063f155707ddb9aec8f3c8f9b73"
+    },
+    "config": {
+      "version": 1,
+      "experiment": {
+        "name": "delivery_3b_mmlu_test"
+      },
+      "dataset": {
+        "name": "cais/mmlu",
+        "revision": "c30699e8356da336a370243923dbaf21066bb9fe",
+        "split": "test",
+        "limit": 60,
+        "seed": 42,
+        "subjects": [
+          "high_school_psychology",
+          "high_school_world_history",
+          "high_school_biology"
+        ],
+        "selection_id": "mmlu-3a-v1",
+        "selection_manifest": "docs/reports/MMLU_SELECTION_MANIFEST.json",
+        "snapshot_path": ".cache/mmlu/huggingface/datasets--cais--mmlu/snapshots/c30699e8356da336a370243923dbaf21066bb9fe"
+      },
+      "model": {
+        "backend": "mlx",
+        "name": "mlx-community/Qwen2.5-0.5B-Instruct-bf16",
+        "revision": "56d07e766edd7159fbe12ed12d9cf114bf38bf1e",
+        "snapshot_path": ".cache/mlx-diagnostic/huggingface/hub/models--mlx-community--Qwen2.5-0.5B-Instruct-bf16/snapshots/56d07e766edd7159fbe12ed12d9cf114bf38bf1e",
+        "max_prompt_tokens": 1024
+      },
+      "prompt": {
+        "template": "current-no-enumeration-v1"
+      },
+      "scoring": {
+        "method": "label_next_token"
+      },
+      "metrics": [
+        "accuracy",
+        "normalized_entropy"
+      ],
+      "output": {
+        "directory": "outputs/mmlu-pilot-test"
+      }
+    },
+    "model": {
+      "backend": "mlx",
+      "name": "mlx-community/Qwen2.5-0.5B-Instruct-bf16",
+      "revision": "56d07e766edd7159fbe12ed12d9cf114bf38bf1e",
+      "snapshot_path": ".cache/mlx-diagnostic/huggingface/hub/models--mlx-community--Qwen2.5-0.5B-Instruct-bf16/snapshots/56d07e766edd7159fbe12ed12d9cf114bf38bf1e",
+      "max_prompt_tokens": 1024,
+      "implementation": "MLXBackend",
+      "capabilities": [
+        "label_next_token"
+      ],
+      "snapshot_sha256": {
+        "added_tokens.json": "58b54bbe36fc752f79a24a271ef66a0a0830054b4dfad94bde757d851968060b",
+        "config.json": "bc8d587c364e4905e8510be14d07c5e69c84347c17f7c7607d5ee4470e72cb50",
+        "merges.txt": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+        "model.safetensors": "39da1e4174f12953ad7ace17239da672aa2b4b9ba723a09835963484c5a05b41",
+        "model.safetensors.index.json": "db341d98a68822279de81d9fbe29cb9bf0077ad032ce7bd10ed0a9f4c24f68fa",
+        "special_tokens_map.json": "76862e765266b85aa9459767e33cbaf13970f327a0e88d1c65846c2ddd3a1ecd",
+        "tokenizer.json": "a8506e7111b80c6d8635951a02eab0f4e1a8e4e5772da83846579e97b16f61bf",
+        "tokenizer_config.json": "f7c61e32b7a17d19bf8e7037dcb74079a833e53ea9801f24008cac68458f03b7",
+        "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+      },
+      "chat_template": "{%- if tools %}\n    {{- '<|im_start|>system\\n' }}\n    {%- if messages[0]['role'] == 'system' %}\n        {{- messages[0]['content'] }}\n    {%- else %}\n        {{- 'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.' }}\n    {%- endif %}\n    {{- \"\\n\\n# Tools\\n\\nYou may call one or more functions to assist with the user query.\\n\\nYou are provided with function signatures within <tools></tools> XML tags:\\n<tools>\" }}\n    {%- for tool in tools %}\n        {{- \"\\n\" }}\n        {{- tool | tojson }}\n    {%- endfor %}\n    {{- \"\\n</tools>\\n\\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\\n<tool_call>\\n{{\\\"name\\\": <function-name>, \\\"arguments\\\": <args-json-object>}}\\n</tool_call><|im_end|>\\n\" }}\n{%- else %}\n    {%- if messages[0]['role'] == 'system' %}\n        {{- '<|im_start|>system\\n' + messages[0]['content'] + '<|im_end|>\\n' }}\n    {%- else %}\n        {{- '<|im_start|>system\\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\\n' }}\n    {%- endif %}\n{%- endif %}\n{%- for message in messages %}\n    {%- if (message.role == \"user\") or (message.role == \"system\" and not loop.first) or (message.role == \"assistant\" and not message.tool_calls) %}\n        {{- '<|im_start|>' + message.role + '\\n' + message.content + '<|im_end|>' + '\\n' }}\n    {%- elif message.role == \"assistant\" %}\n        {{- '<|im_start|>' + message.role }}\n        {%- if message.content %}\n            {{- '\\n' + message.content }}\n        {%- endif %}\n        {%- for tool_call in message.tool_calls %}\n            {%- if tool_call.function is defined %}\n                {%- set tool_call = tool_call.function %}\n            {%- endif %}\n            {{- '\\n<tool_call>\\n{\"name\": \"' }}\n            {{- tool_call.name }}\n            {{- '\", \"arguments\": ' }}\n            {{- tool_call.arguments | tojson }}\n            {{- '}\\n</tool_call>' }}\n        {%- endfor %}\n        {{- '<|im_end|>\\n' }}\n    {%- elif message.role == \"tool\" %}\n        {%- if (loop.index0 == 0) or (messages[loop.index0 - 1].role != \"tool\") %}\n            {{- '<|im_start|>user' }}\n        {%- endif %}\n        {{- '\\n<tool_response>\\n' }}\n        {{- message.content }}\n        {{- '\\n</tool_response>' }}\n        {%- if loop.last or (messages[loop.index0 + 1].role != \"tool\") %}\n            {{- '<|im_end|>\\n' }}\n        {%- endif %}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|im_start|>assistant\\n' }}\n{%- endif %}\n",
+      "chat_template_sha256": "d5495a1e5db0611132a97e46a65dbb64a642a499421228b9c8b93229097fa9a4",
+      "forward_mode": "full_no_kv_cache",
+      "batch_size": 1,
+      "fewshot_count": 0,
+      "add_generation_prompt": true,
+      "add_special_tokens": false,
+      "normalization_dtype": "float32_to_python_float64",
+      "cache_limit_bytes": 268435456,
+      "dependencies": {
+        "mlx": "0.32.4",
+        "mlx-metal": "0.32.4",
+        "mlx-lm": "0.32.2",
+        "transformers": "5.22.1",
+        "tokenizers": "0.23.3",
+        "huggingface-hub": "2.4.0",
+        "numpy": "2.5.4",
+        "safetensors": "0.8.0"
+      },
+      "mlx_peak_bytes": 1541566364,
+      "mlx_active_bytes_after_close": 8
+    },
+    "dataset_revision": "c30699e8356da336a370243923dbaf21066bb9fe",
+    "execution_code": {
+      "package_version": "0.1.0",
+      "commit": "b74da20fef310739af540b312e7a42f9f8c4a557",
+      "dirty": true,
+      "source_sha256": {
+        "src/benchmark/__init__.py": "c80bba68bbce5432d6fe899802cc5507cf16b23a69a2c6261a5d4ed6a21fc2a5",
+        "src/benchmark/backends/__init__.py": "c8f8c71a7f8b2fc37189a8ca1ee471f6f18b051d051b0485d20a8de5f6ea2f3d",
+        "src/benchmark/backends/base.py": "043b1c1e107f44723618b6c4cacf6830182f5f1d1ee226407c173d51cca04e66",
+        "src/benchmark/backends/mlx.py": "a76d6683076595cdeb67de7ac5a9f835ffb612d72d1ed0ebe418fecc3c3635fe",
+        "src/benchmark/backends/simulated.py": "6503b25efca1d0560794ca8f036b14b267544ebe175797c482e25010a4bc1be2",
+        "src/benchmark/cli.py": "e14ad517fdb0d7311cbd07a3453d237cfdf1e9969cce970910327886c0ba3da1",
+        "src/benchmark/config.py": "13fbbaefe42e77396c5c10e798e654aa702e04d54b47997bf18635231057e05a",
+        "src/benchmark/datasets.py": "e6e7ba056d2984cd15cc141d93793bdd46b7c604c628b3c33201169a9063b571",
+        "src/benchmark/metrics.py": "2d46e0d75e24665cd2c7eb8c296399c2f7d98a2bb5c7d35c473b03a6f479eb02",
+        "src/benchmark/mmlu.py": "cf14a3c8c805b8372687a223b4ac9eee62d345ee41a354e691407fff45afecfd",
+        "src/benchmark/mmlu_selection.py": "969b06b66fcb06c5aceea0dbb3e9e3c810d84be92d68e28e6f41e794d9c55a7d",
+        "src/benchmark/numerics.py": "c4085c9064a1542976acf941b086f61e220a24d7f10a9b6dd0fa5e85c11712fb",
+        "src/benchmark/prompts.py": "fff034d63972296843f92683f895c7a96333f8476254b0c5980bd81177f51a09",
+        "src/benchmark/runner.py": "c9f59c945a8f869b5857765fea9f86ca218003a72f8533bdc013ad64ff51afae",
+        "src/benchmark/schemas.py": "dc3ad0b8ccef1f3a3812ddd8e571889a0dbbbe882d487baca77f85f9c70b4a8f",
+        "src/benchmark/scoring/__init__.py": "14dfaa0c6293c3f45d0a6f88bc66f65d4c6b1171040c1012b84a921827fa0627",
+        "src/benchmark/scoring/normalization.py": "42093a102f553b3a489a426af0fe6f27e649e2d891b0214b5e7f7c716cf956d9",
+        "src/benchmark/storage.py": "01d63584d99ae158f21d87e0517a219983f5289c0e5911d6bd0a875236688300"
+      }
+    },
+    "dev_excluded": [
+      {
+        "run_id": "20261107T135918604041Z_0ca97243beec40a98ed44a36e3c402cb",
+        "count": 15,
+        "reason": "technical_validation_only_not_loaded_into_analysis"
+      }
+    ]
+  },
+  "analysis": {
+    "split": "test",
+    "selection_id": "mmlu-3a-v1",
+    "policy": {
+      "high_concentration_threshold_inclusive": 0.9,
+      "threshold_is_calibrated": false,
+      "quartiles": "inclusive_linear_n_minus_1",
+      "standard_deviation": "population_descriptive",
+      "invalid_records": "explicit_exclusion_from_valid_denominator",
+      "examples": "min_and_max_entropy_per_subject_and_outcome_tie_by_id_no_duplicates"
+    },
+    "overall": {
+      "total_count": 60,
+      "valid_count": 60,
+      "failed_count": 0,
+      "accuracy": 0.5666666666666667,
+      "mean_normalized_entropy": 0.4785157438890066,
+      "correct_count": 34,
+      "incorrect_count": 26,
+      "accuracy_denominator": 60,
+      "entropy": {
+        "count": 60,
+        "mean": 0.4785157438890066,
+        "std_population": 0.3151628006288463,
+        "min": 0.0020838428104759223,
+        "q1": 0.19287644765838008,
+        "median": 0.5233150330858276,
+        "q3": 0.7490427005983167,
+        "max": 0.9937272529119412
+      },
+      "entropy_histogram": {
+        "edges": [
+          0.0,
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9,
+          1.0
+        ],
+        "counts": [
+          11,
+          6,
+          6,
+          3,
+          4,
+          3,
+          7,
+          7,
+          10,
+          3
+        ],
+        "intervals": "[left,right), last [0.9,1]",
+        "denominator": 60
+      },
+      "entropy_by_outcome": {
+        "correct": {
+          "count": 34,
+          "mean": 0.34609023559081237,
+          "std_population": 0.28071332657898046,
+          "min": 0.0020838428104759223,
+          "q1": 0.10898912500062759,
+          "median": 0.2613553436167214,
+          "q3": 0.5557063333162608,
+          "max": 0.8958739680184296
+        },
+        "incorrect": {
+          "count": 26,
+          "mean": 0.6516875624327991,
+          "std_population": 0.27064839878952957,
+          "min": 0.0021099257414986822,
+          "q1": 0.5731805105398796,
+          "median": 0.7098960011045347,
+          "q3": 0.8408459882810502,
+          "max": 0.9937272529119412
+        }
+      },
+      "original_label_mass": {
+        "count": 60,
+        "mean": 0.9963574203265484,
+        "std_population": 0.0071956200130945756,
+        "min": 0.9539227430611102,
+        "q1": 0.9975145837172174,
+        "median": 0.9984412572125279,
+        "q3": 0.9993338366142466,
+        "max": 0.9999329892110992
+      },
+      "gold_frequencies": {
+        "denominator": 60,
+        "counts": {
+          "A": 13,
+          "B": 20,
+          "C": 11,
+          "D": 16
+        }
+      },
+      "prediction_frequencies": {
+        "denominator": 60,
+        "counts": {
+          "A": 16,
+          "B": 23,
+          "C": 10,
+          "D": 11
+        }
+      },
+      "high_concentration_errors": {
+        "threshold_inclusive": 0.9,
+        "count": 4,
+        "incorrect_denominator": 26,
+        "fraction_of_incorrect": 0.15384615384615385,
+        "ids": [
+          "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/453",
+          "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/213",
+          "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/60",
+          "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/90"
+        ]
+      }
+    },
+    "by_subject": {
+      "high_school_psychology": {
+        "total_count": 20,
+        "valid_count": 20,
+        "failed_count": 0,
+        "accuracy": 0.6,
+        "mean_normalized_entropy": 0.387762292366504,
+        "correct_count": 12,
+        "incorrect_count": 8,
+        "accuracy_denominator": 20,
+        "entropy": {
+          "count": 20,
+          "mean": 0.387762292366504,
+          "std_population": 0.31482333716634414,
+          "min": 0.0021099257414986822,
+          "q1": 0.09380484226258093,
+          "median": 0.2576208340458712,
+          "q3": 0.6908216526873049,
+          "max": 0.8958739680184296
+        },
+        "entropy_histogram": {
+          "edges": [
+            0.0,
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0
+          ],
+          "counts": [
+            6,
+            3,
+            2,
+            0,
+            1,
+            0,
+            4,
+            2,
+            2,
+            0
+          ],
+          "intervals": "[left,right), last [0.9,1]",
+          "denominator": 20
+        },
+        "entropy_by_outcome": {
+          "correct": {
+            "count": 12,
+            "mean": 0.2728585996727016,
+            "std_population": 0.2662572476340607,
+            "min": 0.002276480122124586,
+            "q1": 0.08348862923773243,
+            "median": 0.19187322894046355,
+            "q3": 0.32667824845183124,
+            "max": 0.8958739680184296
+          },
+          "incorrect": {
+            "count": 8,
+            "mean": 0.5601178314072077,
+            "std_population": 0.3032065821430441,
+            "min": 0.0021099257414986822,
+            "q1": 0.5311905268867567,
+            "median": 0.6914698897482914,
+            "q3": 0.7319966203950311,
+            "max": 0.8384917639857681
+          }
+        },
+        "original_label_mass": {
+          "count": 20,
+          "mean": 0.9956328249149461,
+          "std_population": 0.0057760600032122885,
+          "min": 0.9751821098500972,
+          "q1": 0.99527859969256,
+          "median": 0.9977447188609152,
+          "q3": 0.9995032553700169,
+          "max": 0.9996354100734126
+        },
+        "gold_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 3,
+            "B": 4,
+            "C": 5,
+            "D": 8
+          }
+        },
+        "prediction_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 5,
+            "B": 7,
+            "C": 6,
+            "D": 2
+          }
+        },
+        "high_concentration_errors": {
+          "threshold_inclusive": 0.9,
+          "count": 2,
+          "incorrect_denominator": 8,
+          "fraction_of_incorrect": 0.25,
+          "ids": [
+            "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/453",
+            "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/213"
+          ]
+        }
+      },
+      "high_school_world_history": {
+        "total_count": 20,
+        "valid_count": 20,
+        "failed_count": 0,
+        "accuracy": 0.65,
+        "mean_normalized_entropy": 0.46802382175153856,
+        "correct_count": 13,
+        "incorrect_count": 7,
+        "accuracy_denominator": 20,
+        "entropy": {
+          "count": 20,
+          "mean": 0.46802382175153856,
+          "std_population": 0.3002426864904237,
+          "min": 0.002918179635042718,
+          "q1": 0.21724290522260548,
+          "median": 0.480388964497033,
+          "q3": 0.7215945097791459,
+          "max": 0.9937272529119412
+        },
+        "entropy_histogram": {
+          "edges": [
+            0.0,
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0
+          ],
+          "counts": [
+            3,
+            2,
+            3,
+            1,
+            1,
+            1,
+            2,
+            4,
+            2,
+            1
+          ],
+          "intervals": "[left,right), last [0.9,1]",
+          "denominator": 20
+        },
+        "entropy_by_outcome": {
+          "correct": {
+            "count": 13,
+            "mean": 0.3885807913639302,
+            "std_population": 0.28025352596503383,
+            "min": 0.002918179635042718,
+            "q1": 0.15555533263089916,
+            "median": 0.3380674278034096,
+            "q3": 0.6061549307321086,
+            "max": 0.8803338380088417
+          },
+          "incorrect": {
+            "count": 7,
+            "mean": 0.6155608781856684,
+            "std_population": 0.2796556796342855,
+            "min": 0.19680947526886894,
+            "q1": 0.41415568535132136,
+            "median": 0.7023101496482882,
+            "q3": 0.7938839493839687,
+            "max": 0.9937272529119412
+          }
+        },
+        "original_label_mass": {
+          "count": 20,
+          "mean": 0.9987778495081814,
+          "std_population": 0.0008172928179172177,
+          "min": 0.9965390598659494,
+          "q1": 0.9983424883825587,
+          "median": 0.9989572941125867,
+          "q3": 0.999488630107094,
+          "max": 0.9999329892110992
+        },
+        "gold_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 6,
+            "B": 6,
+            "C": 2,
+            "D": 6
+          }
+        },
+        "prediction_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 6,
+            "B": 6,
+            "C": 3,
+            "D": 5
+          }
+        },
+        "high_concentration_errors": {
+          "threshold_inclusive": 0.9,
+          "count": 2,
+          "incorrect_denominator": 7,
+          "fraction_of_incorrect": 0.2857142857142857,
+          "ids": [
+            "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/60",
+            "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/90"
+          ]
+        }
+      },
+      "high_school_biology": {
+        "total_count": 20,
+        "valid_count": 20,
+        "failed_count": 0,
+        "accuracy": 0.45,
+        "mean_normalized_entropy": 0.5797611175489772,
+        "correct_count": 9,
+        "incorrect_count": 11,
+        "accuracy_denominator": 20,
+        "entropy": {
+          "count": 20,
+          "mean": 0.5797611175489772,
+          "std_population": 0.30021071467251187,
+          "min": 0.0020838428104759223,
+          "q1": 0.37930394740407036,
+          "median": 0.5855127786062386,
+          "q3": 0.8488839888726187,
+          "max": 0.9833154920239838
+        },
+        "entropy_histogram": {
+          "edges": [
+            0.0,
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+            1.0
+          ],
+          "counts": [
+            2,
+            1,
+            1,
+            2,
+            2,
+            2,
+            1,
+            1,
+            6,
+            2
+          ],
+          "intervals": "[left,right), last [0.9,1]",
+          "denominator": 20
+        },
+        "entropy_by_outcome": {
+          "correct": {
+            "count": 9,
+            "mean": 0.382357169587123,
+            "std_population": 0.28043113059008223,
+            "min": 0.0020838428104759223,
+            "q1": 0.14492368554154772,
+            "median": 0.3798663676765306,
+            "q3": 0.5507877516355995,
+            "max": 0.879853410132061
+          },
+          "incorrect": {
+            "count": 11,
+            "mean": 0.741273438608676,
+            "std_population": 0.203847424363058,
+            "min": 0.3776166865866897,
+            "q1": 0.5855127786062386,
+            "median": 0.8286146541861925,
+            "q3": 0.8709763147956988,
+            "max": 0.9833154920239838
+          }
+        },
+        "original_label_mass": {
+          "count": 20,
+          "mean": 0.9946615865565176,
+          "std_population": 0.010584925002012137,
+          "min": 0.9539227430611102,
+          "q1": 0.9974456787116619,
+          "median": 0.9983759408649353,
+          "q3": 0.9987902767222797,
+          "max": 0.9997228525514709
+        },
+        "gold_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 4,
+            "B": 10,
+            "C": 4,
+            "D": 2
+          }
+        },
+        "prediction_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 5,
+            "B": 10,
+            "C": 1,
+            "D": 4
+          }
+        },
+        "high_concentration_errors": {
+          "threshold_inclusive": 0.9,
+          "count": 0,
+          "incorrect_denominator": 11,
+          "fraction_of_incorrect": 0.0,
+          "ids": []
+        }
+      }
+    },
+    "examples": [
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/236",
+        "subject": "high_school_psychology",
+        "outcome": "correct",
+        "roles": [
+          "min_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/158",
+        "subject": "high_school_psychology",
+        "outcome": "correct",
+        "roles": [
+          "max_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/453",
+        "subject": "high_school_psychology",
+        "outcome": "incorrect",
+        "roles": [
+          "min_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/119",
+        "subject": "high_school_psychology",
+        "outcome": "incorrect",
+        "roles": [
+          "max_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/29",
+        "subject": "high_school_world_history",
+        "outcome": "correct",
+        "roles": [
+          "min_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/231",
+        "subject": "high_school_world_history",
+        "outcome": "correct",
+        "roles": [
+          "max_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/60",
+        "subject": "high_school_world_history",
+        "outcome": "incorrect",
+        "roles": [
+          "min_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/97",
+        "subject": "high_school_world_history",
+        "outcome": "incorrect",
+        "roles": [
+          "max_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/31",
+        "subject": "high_school_biology",
+        "outcome": "correct",
+        "roles": [
+          "min_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/305",
+        "subject": "high_school_biology",
+        "outcome": "correct",
+        "roles": [
+          "max_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/40",
+        "subject": "high_school_biology",
+        "outcome": "incorrect",
+        "roles": [
+          "min_entropy"
+        ]
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/24",
+        "subject": "high_school_biology",
+        "outcome": "incorrect",
+        "roles": [
+          "max_entropy"
+        ]
+      }
+    ],
+    "records": [
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/1",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 1,
+        "selection_index": 5,
+        "row_sha256": "fe30055f391744637ddf3e3c35006b439d845fc28c7ad3f7b9018a20ce4f7b24",
+        "question": "Delusions of grandeur are most characteristic of",
+        "choices": [
+          "OCD.",
+          "schizophrenia.",
+          "conversion disorder.",
+          "antisocial personality disorder."
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.06734443995152438,
+          0.929661317329959,
+          0.0020336258745774862,
+          0.0009606168439390983
+        ],
+        "normalized_entropy": 0.1938796663762966,
+        "max_conditional_probability": 0.929661317329959,
+        "original_label_probability_mass": 0.9995432637655547,
+        "prompt_sha256": "d7aefeaf0438ee7893cf39caf0ed46c09cb90e5bb632a86e1befe45e82075def"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/69",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 69,
+        "selection_index": 6,
+        "row_sha256": "2469ebea874bdca0f7d32fc570e6106280faf2dca55dfb82862368049fbe26d2",
+        "question": "A school psychologist is providing feedback to a student's parents regarding the student's performance on a measure of academic achievement. To explain the concept of grade equivalent, the school psychologist should explain that it is",
+        "choices": [
+          "the average score on that measure obtained by students in a given grade",
+          "the average score on that measure obtained by students at a given age",
+          "the grade in which a student should be placed in school",
+          "utilized to determine accountability among peers"
+        ],
+        "gold": "A",
+        "prediction": "B",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.2620172748931391,
+          0.6285467673337369,
+          0.08506455478456859,
+          0.024371402988555335
+        ],
+        "normalized_entropy": 0.6801918509858886,
+        "max_conditional_probability": 0.6285467673337369,
+        "original_label_probability_mass": 0.9977574241073377,
+        "prompt_sha256": "7278f741954ea4a4b2838d26518e2b4d16d0d0bc761f2e7939d51a6ed8dcc8ed"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/74",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 74,
+        "selection_index": 7,
+        "row_sha256": "869b4516a5a0bc8056de182aeafe74d3b3ca03ff8f9e6e3880466dae89a4e33e",
+        "question": "\"Get cookie,\" best exemplifies",
+        "choices": [
+          "babbling",
+          "cooing",
+          "holophrases",
+          "telegraphic speech"
+        ],
+        "gold": "D",
+        "prediction": "B",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.30727242819262035,
+          0.5740604718012458,
+          0.005627890835240537,
+          0.1130392091708933
+        ],
+        "normalized_entropy": 0.6901734156263184,
+        "max_conditional_probability": 0.5740604718012458,
+        "original_label_probability_mass": 0.9996354100734126,
+        "prompt_sha256": "1bfe601a787ff4cf54dd0ab241e371fea918861388297b11c9b361b53fb136ac"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/107",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 107,
+        "selection_index": 8,
+        "row_sha256": "38e1ea9bf7413d2abbb6b213955c3f8f2bcf34f60eba3c7ba38e030f9d2066aa",
+        "question": "B. F. Skinner was well known for his work involving the",
+        "choices": [
+          "biological perspective",
+          "behavioral perspective",
+          "cognitive perspective",
+          "psychodynamic perspective"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.009703301115285293,
+          0.9897636218155526,
+          0.0003762378140978519,
+          0.00015683925506425773
+        ],
+        "normalized_entropy": 0.04292170248996707,
+        "max_conditional_probability": 0.9897636218155526,
+        "original_label_probability_mass": 0.9866221101083589,
+        "prompt_sha256": "d99e8bb16293c6991afe0caab0d48d7f1404dc43bfd3d8b267e5f720c51db988"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/119",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 119,
+        "selection_index": 9,
+        "row_sha256": "53282c5b77a4006b961eda36572fd53cff42f2a294de79f7f9e8f14bbd5d5bc4",
+        "question": "Noam Chomsky and B. F. Skinner disagreed about how children acquire language. Which of the following concepts is most relevant to the differences between their theories?",
+        "choices": [
+          "phonemes",
+          "morphemes",
+          "linguistic relativity hypothesis",
+          "language acquisition device"
+        ],
+        "gold": "D",
+        "prediction": "C",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.11548190692743324,
+          0.08993739954566411,
+          0.5175540000984752,
+          0.27702669342842745
+        ],
+        "normalized_entropy": 0.8384917639857681,
+        "max_conditional_probability": 0.5175540000984752,
+        "original_label_probability_mass": 0.9929405154594311,
+        "prompt_sha256": "89342f9f5d7c95c81cb96d9658582665fcbb44119d46aa36aaf5175f260866e7"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/158",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 158,
+        "selection_index": 10,
+        "row_sha256": "cb27f85cf50eadd238596102f5e8f96d18cfdaa6dd7301c23e6b9c17122737f4",
+        "question": "You are given four lists of words to learn: 1, 2, 3, and 4. You must learn list 1, then list 2, etc. Which list(s) would cause proactive interference for remembering list 2?",
+        "choices": [
+          "list 1 only",
+          "list 3 only",
+          "list 4 only",
+          "lists 3 and 4 only"
+        ],
+        "gold": "A",
+        "prediction": "A",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.49077802168116,
+          0.12408811663171761,
+          0.18054714435529118,
+          0.20458671733183115
+        ],
+        "normalized_entropy": 0.8958739680184296,
+        "max_conditional_probability": 0.49077802168116,
+        "original_label_probability_mass": 0.9751821098500972,
+        "prompt_sha256": "e52ba480fbff179433c0f1f3c51259134f584dfcbce0d35ea1d444462918f21f"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/184",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 184,
+        "selection_index": 11,
+        "row_sha256": "6aff4ed9d4e50404e9bc253a3e4dea26e2d130a0472746b7bb6e1d10af8da82b",
+        "question": "One month before finals, Conrad makes a study schedule and begins to review his notes. Two weeks before finals, Conrad is studying for hours each day to prepare. Right after finals at the start of summer vacation, Conrad comes down with the flu. Which of the following theories best explains this chain of events?",
+        "choices": [
+          "Selye's general adaptation syndrome",
+          "Yerkes-Dodson law",
+          "Thorndike's law of effect",
+          "Festinger's cognitive dissonance theory"
+        ],
+        "gold": "A",
+        "prediction": "A",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.5242033384145077,
+          0.40824997044586325,
+          0.03797316247129043,
+          0.029573528668338674
+        ],
+        "normalized_entropy": 0.6727586757191146,
+        "max_conditional_probability": 0.5242033384145077,
+        "original_label_probability_mass": 0.9961498023200919,
+        "prompt_sha256": "8ce17198bf8446160afcf18d688f202e3f5382e1550aece2b8fef5d909869b5f"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/188",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 188,
+        "selection_index": 12,
+        "row_sha256": "ab9ef71a87860588a42ecf94c45ddc7aa313e894034ca5eef9cd24fe0b26081e",
+        "question": "Abraham Maslow's hierarachy of needs theorizes that each person is motivated by what?",
+        "choices": [
+          "desire to achieve in the eyes of others",
+          "satisfying needs from the next step in the hierarchy",
+          "primary (physical) and secondary (emotional) needs",
+          "homeostasis needs determined by our inner self"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.07489488112715587,
+          0.9124064370191809,
+          0.010135919950316078,
+          0.0025627619033471833
+        ],
+        "normalized_entropy": 0.24495144166798602,
+        "max_conditional_probability": 0.9124064370191809,
+        "original_label_probability_mass": 0.999489919238171,
+        "prompt_sha256": "cc43a7f3e2fc56707316fa2ccfec5f4f83cb004d3e801c1d4e67fa3a80010778"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/211",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 211,
+        "selection_index": 13,
+        "row_sha256": "e546c0058623a92ee9b19389cf5654ebf34567046a9a637d469f7d0298f70b00",
+        "question": "Which of the following is an example of a result of operant conditioning?",
+        "choices": [
+          "Milo starts at the sound of a buzzer because it sounds very similar to the alarm clock that wakes him every morning.",
+          "Paula is promoted to vice president of her company and vows to not lose touch with her employees.",
+          "Rebecca cancels her credit card to avoid paying the annual fee but plans to reinstate it in the new year.",
+          "Ashmed speaks louder than usual when he talks to his mother on the phone because she is hard of hearing."
+        ],
+        "gold": "D",
+        "prediction": "C",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.07760514884869993,
+          0.3941114652964316,
+          0.506049138448667,
+          0.02223424740620159
+        ],
+        "normalized_entropy": 0.7174818525607811,
+        "max_conditional_probability": 0.506049138448667,
+        "original_label_probability_mass": 0.9995778088839248,
+        "prompt_sha256": "1ef7adbb9d27aa4fb3f7c94cfd0983305015724237d939d6dff4625f2150fee2"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/213",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 213,
+        "selection_index": 14,
+        "row_sha256": "bac5e80ed52065ace1a29eebecc218b78f7d0051dac61d72280a21a7102e7d4a",
+        "question": "According to Elisabeth Kubler-Ross, the first reaction of a person faced with a terminal illness is",
+        "choices": [
+          "acceptance",
+          "anger",
+          "bargaining",
+          "denial"
+        ],
+        "gold": "D",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.978357584097352,
+          0.01791924421438148,
+          0.0012980656971272107,
+          0.002425105991139351
+        ],
+        "normalized_entropy": 0.08418655458936107,
+        "max_conditional_probability": 0.978357584097352,
+        "original_label_probability_mass": 0.9995977041605141,
+        "prompt_sha256": "b9ef35a1bfdef0a899f6a4152e44d272733143142f646aca8c4670ba974f2f94"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/230",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 230,
+        "selection_index": 15,
+        "row_sha256": "5b5a4dc8b4c742d388019be5f6b72ec6023dfdd1e1256eb98a8bbd80ec54cd7d",
+        "question": "According to Kohlberg, in order to reason at the postconventional level, people must",
+        "choices": [
+          "be generous.",
+          "believe in God.",
+          "be able to take another person's perspective.",
+          "have had a successful resolution of the integrity versus despair stage."
+        ],
+        "gold": "C",
+        "prediction": "C",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.0043705699103208035,
+          0.01525478790658285,
+          0.9437803083592866,
+          0.036594333823809666
+        ],
+        "normalized_entropy": 0.18986679150463048,
+        "max_conditional_probability": 0.9437803083592866,
+        "original_label_probability_mass": 0.9995920839489937,
+        "prompt_sha256": "5212ae6cd295a90cb53438beb3c4a0b08430251e35eb4213b04e3da23a79ad1c"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/236",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 236,
+        "selection_index": 16,
+        "row_sha256": "05ab6dde5ac182d65cf7f963b25dad5cf8584f83e65629150d202eb4978c1190",
+        "question": "Which of the following would be most useful in understanding a neighbor's interpretation of a certain family's recent crisis as being due to extreme financial distress?",
+        "choices": [
+          "Reinforcement theory",
+          "Classical behaviorism",
+          "Attribution theory",
+          "Hierarchy of needs"
+        ],
+        "gold": "C",
+        "prediction": "C",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.00015841176320110644,
+          9.608159124060855e-05,
+          0.9996872302146368,
+          5.827643092140589e-05
+        ],
+        "normalized_entropy": 0.002276480122124586,
+        "max_conditional_probability": 0.9996872302146368,
+        "original_label_probability_mass": 0.9983025590868321,
+        "prompt_sha256": "e40da569e28b62e77e4b6ecb7965aa66dde9ef2559abd85d0359953cc30d823d"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/281",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 281,
+        "selection_index": 17,
+        "row_sha256": "0d265cfbf1ecfd0fc21ad9c4b4a093398335df711341eef62e303a452e2807b6",
+        "question": "In a cartoon, an angel is perched on one shoulder and a devil is perched on the other shoulder of a character who needs to decide whether to give money to a homeless man or not. The devil says, \"Don't give him anything, you'll make better use of the money than he will.\" The angel says, \"Give him the money because he needs it more than you do.\" The character gives the homeless man half of his money. In a Freudian interpretation, the angel represents the character's",
+        "choices": [
+          "libido",
+          "id",
+          "ego",
+          "superego"
+        ],
+        "gold": "D",
+        "prediction": "D",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.007311443156274314,
+          0.017539240350831268,
+          0.017539240350831268,
+          0.9576100761420632
+        ],
+        "normalized_entropy": 0.15817117695195138,
+        "max_conditional_probability": 0.9576100761420632,
+        "original_label_probability_mass": 0.9977320136144926,
+        "prompt_sha256": "ece138edc37dc6598e31bcac0e6fbf211421c2f84983b51c4aa76fc9d320b9c8"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/373",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 373,
+        "selection_index": 18,
+        "row_sha256": "f3738cd94f64764c2ec82ee953acf91c54a0069e114d5e622bcd8bcdf0fce0db",
+        "question": "A doctor who smokes cigarettes knows that it is unhealthy, but thinks that he can keep smoking, since he eats healthily. Which concept best explains this thought process?",
+        "choices": [
+          "reaction formation",
+          "affective retraining",
+          "cognitive dissonance",
+          "obsessive compulsion"
+        ],
+        "gold": "C",
+        "prediction": "C",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.008450179850278208,
+          0.010850245703339832,
+          0.9767079921204643,
+          0.0039915823259175
+        ],
+        "normalized_entropy": 0.0970109381536542,
+        "max_conditional_probability": 0.9767079921204643,
+        "original_label_probability_mass": 0.9964831760188161,
+        "prompt_sha256": "0bf9876cbaeebacbe4ab2167841fa08b77b0373f517eb7d45e8fd27c53852742"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/453",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 453,
+        "selection_index": 19,
+        "row_sha256": "c91f321e3165f587ba1e728a99e1e4c15d4c94cef71d4ccf87453a41090f7f31",
+        "question": "What type of test is the Advanced Placement Examination in Psychology?",
+        "choices": [
+          "aptitude",
+          "projective",
+          "achievement",
+          "intelligence"
+        ],
+        "gold": "C",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.9997028619367903,
+          0.0002034079108135519,
+          8.479303252032314e-05,
+          8.937119875891007e-06
+        ],
+        "normalized_entropy": 0.0021099257414986822,
+        "max_conditional_probability": 0.9997028619367903,
+        "original_label_probability_mass": 0.9926184260292428,
+        "prompt_sha256": "d476d6277c6040e1ac4fb3955bdb7d2b56dbd83410c87ad72bc79889a9cc52fb"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/469",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 469,
+        "selection_index": 20,
+        "row_sha256": "ec9b5a5134ab4c99b1f0fcb017ee67dce233dcea79a4c4d221c42c1bb428d78e",
+        "question": "Which of the following kinds of therapists is most likely to prescribe lithium for a patient diagnosed with bipolar disorder?",
+        "choices": [
+          "psychoanalyst",
+          "psychiatrist",
+          "clinical psychologist",
+          "cognitive psychotherapist"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.000910302190868792,
+          0.9982675666967888,
+          0.00048724965106839606,
+          0.0003348814612739508
+        ],
+        "normalized_entropy": 0.010459814108452176,
+        "max_conditional_probability": 0.9982675666967888,
+        "original_label_probability_mass": 0.9986198008066645,
+        "prompt_sha256": "68f52fd717db598750d10619b0cf6c9cd776e3b33b3c95d238858b5f8d319895"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/483",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 483,
+        "selection_index": 21,
+        "row_sha256": "e6e1e71951fb191700b6a9cc24286816e56a6f8c00d1f5e40a58924bf51537b0",
+        "question": "Most New Yorkers remember where they were and what they were doing when they heard that the World Trade Center was destroyed. Which of the following best identifies this type of memory?",
+        "choices": [
+          "implicit memory",
+          "engrams",
+          "flashbulb memory",
+          "explicit memory"
+        ],
+        "gold": "C",
+        "prediction": "C",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.10847496553035159,
+          0.024204036430882755,
+          0.8015276056333364,
+          0.06579339240542932
+        ],
+        "normalized_entropy": 0.4958423145360559,
+        "max_conditional_probability": 0.8015276056333364,
+        "original_label_probability_mass": 0.990966936567796,
+        "prompt_sha256": "761f93b830281d462b3c01efc7ded15874b3405cfd4f18db1b6406fb694b6ffd"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/494",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 494,
+        "selection_index": 22,
+        "row_sha256": "52e643d482564186295a5b594095080b812fc77d9846e2c2cd0e7beaacb01ae9",
+        "question": "REM sleep is considered to be paradoxical sleep because",
+        "choices": [
+          "brain patterns change from alpha waves to delta waves over the course of a night's sleep",
+          "people can always act out the content of their dreams",
+          "people will try to increase REM sleep if deprived of REM sleep for a period of time",
+          "the mind is very active, but the body is in a state of paralysis"
+        ],
+        "gold": "D",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.4300558549144094,
+          0.10873514853002396,
+          0.031153141641157112,
+          0.4300558549144094
+        ],
+        "normalized_entropy": 0.7755409238977813,
+        "max_conditional_probability": 0.4300558549144094,
+        "original_label_probability_mass": 0.9975665143830376,
+        "prompt_sha256": "418d549b3490880fcd2b7c183bdc16cbd1c175f11bc6f67c9e72723ba6240d0b"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/520",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 520,
+        "selection_index": 23,
+        "row_sha256": "dd4f0f39fa869b8d70e8eda6eed0531b348a7cefef3cbb6bcaf7b175b9d3b504",
+        "question": "The Rosenhan study of mental institutions showed that",
+        "choices": [
+          "treatment at private institutions tends to be better than treatment at public institutions.",
+          "men are diagnosed at higher rates than women reporting the same symptoms.",
+          "it is difficult to convince medical professionals that one has a disorder when one does not.",
+          "confirmation bias may influence clinicians' views and treatments of mental patients."
+        ],
+        "gold": "D",
+        "prediction": "D",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.02439054148087878,
+          0.014793611215145755,
+          0.04556753052123471,
+          0.9152483167827408
+        ],
+        "normalized_entropy": 0.2702902264237564,
+        "max_conditional_probability": 0.9152483167827408,
+        "original_label_probability_mass": 0.996057961103603,
+        "prompt_sha256": "0f7232ef52ddbbab068adcdcd6fa2d2ce0bf24e55c689fa12c6b2cedb181a555"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_psychology/test/532",
+        "subject": "high_school_psychology",
+        "split": "test",
+        "original_index": 532,
+        "selection_index": 24,
+        "row_sha256": "57c860e903c37f72b2f744e7a7253ab2170474cf5c6edabc8a47293b2ace6579",
+        "question": "In people, rods, unlike cones,",
+        "choices": [
+          "are located in the center of the retina.",
+          "synapse with bipolar cells.",
+          "respond more quickly to bright colors.",
+          "have a low absolute threshold for light."
+        ],
+        "gold": "D",
+        "prediction": "B",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.19113670634346133,
+          0.6671326568983523,
+          0.06205300331715306,
+          0.07967763344103326
+        ],
+        "normalized_entropy": 0.6927663638702642,
+        "max_conditional_probability": 0.6671326568983523,
+        "original_label_probability_mass": 0.9982209587725501,
+        "prompt_sha256": "4a648f0f5830c92fe8c72d65ddfccefb6145ee29482242039e9e930410a59318"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/10",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 10,
+        "selection_index": 30,
+        "row_sha256": "5039c9336d8339a1457a0824e31a7db1fea565bb0ba88bd03921c6e763cb8976",
+        "question": "This question refers to the following information.\nThe passage below is taken from testimony before Parliament.\nJoshua Drake, called in; and Examined.\nYou say you would prefer moderate labour and lower wages; are you pretty comfortable upon your present wages?\n—I have no wages, but two days a week at present; but when I am working at some jobs we can make a little, and at others we do very poorly.\nWhen a child gets 3s. a week, does that go much towards its subsistence?\n—No, it will not keep it as it should do.\nWhy do you allow your children to go to work at those places where they are ill-treated or over-worked?\n—Necessity compels a man that has children to let them work.\nThen you would not allow your children to go to those factories under the present system, if it was not from necessity?\n—No.\n—Testimony given before the Sadler Committee, 1831–32\nAccording to the passage, why does the witness allow his children to work in a place where they will be ill-treated?",
+        "choices": [
+          "A factory owner is forcing him to do so.",
+          "He doesn’t earn enough on his own.",
+          "The children need discipline.",
+          "Their labor is only moderately difficult."
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.043527248749637995,
+          0.6008751344797739,
+          0.28383331590200445,
+          0.07176430086858372
+        ],
+        "normalized_entropy": 0.7134136233538191,
+        "max_conditional_probability": 0.6008751344797739,
+        "original_label_probability_mass": 0.9985209486398683,
+        "prompt_sha256": "35dbf3e620778c632eaf079e687a0d4ea7883cbe5f0d296389a0c1601e03558c"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/19",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 19,
+        "selection_index": 31,
+        "row_sha256": "3d8f2953aba5f4b4c1b1b02e25324cac60bd97b41e6d08c95762c7aa7612224c",
+        "question": "This question refers to the following information.\nAt the peak of their power, the domains of the Mongol khans, or rulers, made up a vast realm in which once-hostile peoples lived together in peace and virtually all religions were tolerated. . . . The law code first promulgated by Chinggis Khan ordered human interaction. The result was an important new stage in international contact. From eastern Europe to southern China, merchants and travelers could move across the well-policed Mongol domains without fear for their lives or property. The great swath of Mongol territory that covered or connected most of Europe, Asia, and the Middle East served as a bridge between the civilizations of the Eastern Hemisphere. The caravans and embassies that crossed the Mongol lands transmitted new food, inventions, and ideas from one civilized pool to others and from civilized pools to the nomadic peoples who served as intermediaries. Secure trade routes made for prosperous merchants and wealthy, cosmopolitan cities. They also facilitated the spread of foods [and] inventions . . . a major force for economic and social development and the enhancement of civilized life.\n—Robert Guisepi, 1992\nThe Mongol empire used which of the following to integrate its vast, geographically diverse area?",
+        "choices": [
+          "Emphasis on trade networks",
+          "Expansion of bureaucracy to reinforce dominance",
+          "The use of state-sponsored religion to legitimize the government",
+          "Expansion of an interregional canal system"
+        ],
+        "gold": "A",
+        "prediction": "A",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.9517574232658907,
+          0.041817302731618725,
+          0.004994364590145226,
+          0.0014309094123452846
+        ],
+        "normalized_entropy": 0.15555533263089916,
+        "max_conditional_probability": 0.9517574232658907,
+        "original_label_probability_mass": 0.998113113493396,
+        "prompt_sha256": "6408cbbe1be48ce3d327e49429d3514f786421ad7210073705c843420db968d4"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/21",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 21,
+        "selection_index": 32,
+        "row_sha256": "9e65b970740fe3ee03b7c6d2a71a1246016adb33556117ff834ff35c99d79221",
+        "question": "This question refers to the following information.\nBonesteel's prime consideration was to establish a surrender zone as far north as he thought the Soviets would accept. He knew that the Russian troops could reach the southern tip of Korea before American troops could arrive. He also knew that the Russians were on the verge of moving into Korea, or were already there. The nearest American troops to Korea were on Okinawa, 600 miles away. His problem, therefore, was to compose a surrender arrangement which, while acceptable to the Russians, would at the same time prevent them from seizing all of Korea. If they refused to confine their advance to north Korea, the United States would be unable to stop them. . . . He decided to use the 38th parallel as a hypothetical line dividing the zones within which Japanese forces in Korea would surrender to appointed American and Russian authorities.\n—Adapted from U.S. Army Lt. Paul C. McGrath's account of Colonel Bonesteel's decision in the 1940s\nWhich U.S. cold war policy, developed later, is consistent with the U.S. concern over limiting how much Korean territory the Soviet Union would occupy?",
+        "choices": [
+          "Détente",
+          "Mutual Assured Destruction",
+          "Dollar Diplomacy",
+          "Containment"
+        ],
+        "gold": "D",
+        "prediction": "D",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.040546508608729916,
+          0.021702982119366308,
+          0.014916226928432636,
+          0.9228342823434712
+        ],
+        "normalized_entropy": 0.2524204608096864,
+        "max_conditional_probability": 0.9228342823434712,
+        "original_label_probability_mass": 0.9965390598659494,
+        "prompt_sha256": "601c7c4a85e792b5439ebd43cd521726512b5da66752ce7c80c514661aff0086"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/29",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 29,
+        "selection_index": 33,
+        "row_sha256": "0fe3a7685e6749b26fe53f2c4d9239bd825cff6df45e0b67890aad5322ae220e",
+        "question": "This question refers to the following information.\nThe following poem refers to an incident in Sharpeville, South Africa, in 1960. To protest the requirement that they carry papers documenting their identity and residence, black South Africans gathered in front of police stations without their papers. Though other protests ended peacefully, in Sharpeville, police fired into the crowd.\nWhat is important\nabout Sharpeville\nis not that seventy died:\nnor even that they were shot in the back\nretreating, unarmed, defenceless\nand certainty not\nthe heavy caliber slug\nthat tore through a mother's back\nand ripped through the child in her arms\nkilling it\nRemember Sharpeville\nbullet-in-the-back day\nBecause it epitomized oppression\nand the nature of society\nMore clearly than anything else;\nit was the classic event\nNowhere is racial dominance\nmore clearly defined\nnowhere the will to oppress\nmore clearly demonstrated\nWhat the world whispers\napartheid declares with snarling guns\nthe blood the rich lust after\nSouth Africa spills dust\nRemember Sharpeville\nRemember bullet-in-the-back day\nAnd remember the unquenchable will for freedom\nRemember the dead\nand be glad\n—Dennis Brutus, 1973\nThe discriminatory system referred to in the poem was known as",
+        "choices": [
+          "Jim Crow.",
+          "spheres of influence.",
+          "Boer division.",
+          "apartheid."
+        ],
+        "gold": "D",
+        "prediction": "D",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.00020338463628637274,
+          0.0001233590176221877,
+          8.478333025391619e-05,
+          0.9995884730158375
+        ],
+        "normalized_entropy": 0.002918179635042718,
+        "max_conditional_probability": 0.9995884730158375,
+        "original_label_probability_mass": 0.9999329892110992,
+        "prompt_sha256": "c28b423b0631b0b301e0b173e3e9441549afb9f744bba889ccfed1a660595470"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/48",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 48,
+        "selection_index": 34,
+        "row_sha256": "9f4687bcf45f35c4fa2009b786772c886147221f97637835d1557a01aa6ba7e8",
+        "question": "This question refers to the following information.\nGunpowder Weaponry: Europe vs. China\nIn Western Europe during the 1200s through the 1400s, early cannons, as heavy and as slow to fire as they were, proved useful enough in the protracted sieges that dominated warfare during this period that governments found it sufficiently worthwhile to pay for them and for the experimentation that eventually produced gunpowder weapons that were both more powerful and easier to move. By contrast, China, especially after the mid-1300s, was threatened mainly by highly mobile steppe nomads, against whom early gunpowder weapons, with their unwieldiness, proved of little utility. It therefore devoted its efforts to the improvement of horse archer units who could effectively combat the country's deadliest foe.\nAccording to this passage, why did the Chinese, despite inventing gunpowder, fail to lead in the innovation of gunpowder weaponry?",
+        "choices": [
+          "They were discouraged by Confucian traditionalism from doing so.",
+          "They put too much faith in the numerical strength of their existing armed forces.",
+          "They logically decided to develop weapons better suited to their immediate military needs.",
+          "They could not afford the initial expense of converting to a new military technology."
+        ],
+        "gold": "C",
+        "prediction": "D",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.06672117704149456,
+          0.2990235699069572,
+          0.1412487329052612,
+          0.4930065201462871
+        ],
+        "normalized_entropy": 0.8416307297128108,
+        "max_conditional_probability": 0.4930065201462871,
+        "original_label_probability_mass": 0.9990915809563371,
+        "prompt_sha256": "e0bcec7779019e071599871aa22c1f3e9ef9704ee425eb07b292c82a48466cf2"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/53",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 53,
+        "selection_index": 35,
+        "row_sha256": "6b0576b2a9a5c950967b6f1364ef2faf0091883eafd5bf0f5a2a7ce794444006",
+        "question": "This question refers to the following information.\nNew York! I say New York, let black blood flow into your blood.\nLet it wash the rust from your steel joints, like an oil of life\nLet it give your bridges the curve of hips and supple vines…\nSee your rivers stirring with musk alligators\nAnd sea cows with mirage eyes…\nJust open your eyes to the April rainbow\nAnd your eyes, especially your ears, to God\nWho in one burst of saxophone laughter\nCreated heaven and earth in six days,\nAnd on the seventh slept a deep Negro sleep.\nSenegalese poet Léopold Sédar Senghor, \"To New York,\" 1956\nWhich of the following best explains the phenomenon of an African poet writing so lyrically about New York?",
+        "choices": [
+          "Outmigration from Africa due to political violence",
+          "Stronger transatlantic influences linking art in Afro-Eurasia with that in the Americas",
+          "Preference on the part of African intellectuals for Western cultural advancements",
+          "Lack of a rich indigenous artistic tradition in Africa"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.004053513508515952,
+          0.9918620528578879,
+          0.0019147442025068166,
+          0.002169689431089273
+        ],
+        "normalized_entropy": 0.04019497292690952,
+        "max_conditional_probability": 0.9918620528578879,
+        "original_label_probability_mass": 0.999747681508486,
+        "prompt_sha256": "b22d4b9aba0bc760245de8b16e7ee29ada34fd6b0b2ba042c8cda03e6a20b4db"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/60",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 60,
+        "selection_index": 36,
+        "row_sha256": "011b4a83fa602205cbc42c8b0b476e6e252a1f99a92f662ec8b384f02a9e0747",
+        "question": "This question refers to the following information.\n\"In Northern India the existence of separate States at this period is usually little more than a question of words. A zamindar who paid revenue to the Mogul was clearly in a position of dependence, and if he wished to establish a claim to sovereignty, the first step was to refuse, or omit to pay revenue. Such an omission might, however, arise from various other causes, and it is probable that in Rajputana, Central India, and Chota Nagpur there were numerous chiefs and tribes occupying what constitutional lawyers would regard as an anomalous position, sometimes paying the stipulated revenue, sometimes in open rebellion, and sometimes enjoying practical independence because the Mogul authorities found it inconvenient to undertake active measures of coercion.\"\nW.H. Moreland, India at the Death of Akbar, 1920\nZamindars had an ability \"to establish a claim to sovereignty\" largely due to the Mughal Empire's policy of",
+        "choices": [
+          "religious toleration",
+          "universal taxation",
+          "martial law",
+          "suffrage"
+        ],
+        "gold": "A",
+        "prediction": "B",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.059653445370823135,
+          0.9331368865593154,
+          0.00489665298117484,
+          0.002313015088686572
+        ],
+        "normalized_entropy": 0.19680947526886894,
+        "max_conditional_probability": 0.9331368865593154,
+        "original_label_probability_mass": 0.9994883421218574,
+        "prompt_sha256": "e3c149e1c8f500d7982b65dcee32e7ef58a76226f12ff486ffbc6a1c1b27289f"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/83",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 83,
+        "selection_index": 37,
+        "row_sha256": "e2760d5e9148786e3871fd621c0c613d406a340fcd2b238e6845bdbed2fb5dee",
+        "question": "This question refers to the following information.\n\"The quicksilver mines of Huancavelica are where the poor Indians are so harshly punished, where they are tortured and so many Indians die; it is there that the noble caciques [headmen] of this kingdom are finished off and tortured. The same is true in all the other mines: the silver mines of Potosi [and others]….The owners and stewards of the mines, whether Spaniards, mestizos, or Indians, are such tyrants, with no fear of God or Justice, because they are not audited and are not inspected twice a year….\nAnd they are not paid for the labor of traveling to and from the mines or for the time they spend at the mines. The Indians, under the pretext of mining chores, are made to spend their workdays herding cattle and conveying goods; they are sent off to the plains, and the Indians die. These Indians are not paid for their labor, and their work is kept hidden.\nAnd [the mine owners] keep Indian cooking women in their residences; they use cooking as a pretext for taking concubines….And they oblige the Indians to accept corn or meat or chicha [corn beer]…at their own expense, and they deduct the price from their labor and their workdays. In this way, the Indians end up very poor and deep in debt, and they have no way to pay their tribute.\nThere is no remedy for all this, because any [colonial official] who enters comes to an agreement with the mine owners, and all the owners join forces in bribing him….Even the protector of the Indians is useless;…he [does not] warn Your Majesty or your royal Audiencia [court] about the harms done to the poor Indians.\"\nExcerpt from The First New Chronicle and Good Government [abridged], by Felipe Guaman Poma de Alaya. Selected, translated, and annotated by David Frye. Copyright 2006 Hackett Publishing Company. Reprinted with permission from the publisher.\nFelipe Guaman Poma de Ayala, The First New Chronicle and Good Government, ca. 1610\nThe views expressed in the passage are best seen as evidence for which of the following in the society of Spanish South America?",
+        "choices": [
+          "The formal adoption of debt slavery as a means to clear debts",
+          "The absence of corruption among elites",
+          "The king's lack of interest in the welfare of Native American subjects",
+          "The imposition of social stratification based on origin of birth"
+        ],
+        "gold": "D",
+        "prediction": "D",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.042790702943276915,
+          0.042790702943276915,
+          0.0549443501771025,
+          0.8594742439363436
+        ],
+        "normalized_entropy": 0.40343206845091795,
+        "max_conditional_probability": 0.8594742439363436,
+        "original_label_probability_mass": 0.9995615393901743,
+        "prompt_sha256": "45fee0f72b4436618097d8e153c199bd4a689318d2c16361fbcb2485bad46a35"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/89",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 89,
+        "selection_index": 38,
+        "row_sha256": "1de36d841ddd447002a2b7b072defaaf94d715dcf63793e62fd9cc328d3f54b4",
+        "question": "This question refers to the following information.\nLiteracy rates among the Russian-speaking population of late Imperial Russia and the Soviet Union, 1897–1955\nLiteracy Rate\n1897  24%\n1917  45%\n1926  56%\n1937  75%\n1939  81.10%\n1955  99.90%\nSource: Census data and Soviet Ministry of Education\nThe information presented in the above chart is best understood in which of the following historical contexts?",
+        "choices": [
+          "Educational reform in the modern era",
+          "Centralized and state-directed campaigns of modernization",
+          "Experimentation with syndicalist forms of socio-economic organization",
+          "Second-stage industrialization in the non-Western world"
+        ],
+        "gold": "B",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.5133680507137949,
+          0.4530457146408155,
+          0.019905439492542684,
+          0.013680795152846998
+        ],
+        "normalized_entropy": 0.604257322162125,
+        "max_conditional_probability": 0.5133680507137949,
+        "original_label_probability_mass": 0.9973587917197565,
+        "prompt_sha256": "86cfcfd4c367b7d2c8fc956c87a508d627f23fc18c24f98ec5a39f028050f924"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/90",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 90,
+        "selection_index": 39,
+        "row_sha256": "c7fe873cae0990f9ccb25b81bfdee47a92c31632a86e2d70872a51fca6682c1f",
+        "question": "This question refers to the following information.\nWhether the question be to continue or to discontinue the practice of sati, the decision is equally surrounded by an awful responsibility. To consent to the consignment year after year of hundreds of innocent victims to a cruel and untimely end, when the power exists of preventing it, is a predicament which no conscience can contemplate without horror. But, on the other hand, to put to hazard by a contrary course the very safety of the British Empire in India is an alternative which itself may be considered a still greater evil. When we had powerful neighbours and greater reason to doubt our own security, expediency might recommend a more cautious proceeding, but now that we are supreme my opinion is decidedly in favour of an open and general prohibition.\nWilliam Bentinck, Govenor-General of India, \"On the Suppression of Sati,\" 1829\nI have made it my study to examine the nature and character of the Indians [who trade with us], and however repugnant it may be to our feelings, I am convinced they must be ruled with a rod of iron, to bring and keep them in a proper state of subordination, and the most certain way to effect this is by letting them feel their dependence on [the foodstuffs and manufactured goods we sell them].\nGeorge Simpson, Head of Northern Department, Hudson's Bay Company, 1826\nThe authors of both passages served institutions associated with which of the following colonial techniques commonly used by Western imperial powers?",
+        "choices": [
+          "Direct rule by the crown",
+          "Complete privatization of colonial authority",
+          "Martial law enforced by sizable armies",
+          "The chartering of companies to assume costs and share profits"
+        ],
+        "gold": "D",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.9327917952521583,
+          0.03191838001008971,
+          0.028167871494422236,
+          0.0071219532433297586
+        ],
+        "normalized_entropy": 0.22405404854051766,
+        "max_conditional_probability": 0.9327917952521583,
+        "original_label_probability_mass": 0.9994970995501531,
+        "prompt_sha256": "5829dd12403763f32c7e6698ad9b70dff6b2443f6196d8a2504bb017ac9ca561"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/97",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 97,
+        "selection_index": 40,
+        "row_sha256": "91919b7353a8087cd0195058e1a03c1ed6070fa271555a79a2b6169c67a8b505",
+        "question": "This question refers to the following information.\n\"Purusa-Sukta\"\nPurusa is the lord of the immortals, who grow by means of [ritual] food. When the gods performed a sacrifice with the offering Purusa, spring was its clarified butter, summer the kindling, autumn the oblation.\nIt was Purusa, born in the beginning, which they sprinkled on the sacred grass as a sacrifice. It made the beasts of the air, the forest and the village. From that sacrifice completely offered, the mantras [Rig Veda] and the songs [Samaveda] were born. The sacrificial formulae [Yajurveda] were born from it. From it the horses were born and all that have cutting teeth in both jaws. The cows were born from it, also. From it were born goats and sheep.\nWhen they divided Purusa, how many ways did they apportion him? What was his mouth? What were his arms? What were his thighs, his feet declared to be? His mouth was the Brahman, his arms were the Rajanaya [Ksatriya], his thighs the Vaisya; from his feet the Sudra was born. Thus, they fashioned the worlds. The gods sacrificed with the sacrifice to the sacrifice. These were the first rites.\n—Hymns excerpted and adapted from the Rig Veda, oldest surviving literary work, India, 1500–1000 BCE\nWhich of the following statements is supported by the information in the passage above?",
+        "choices": [
+          "The caste system was a purely social construct that reflected its time period.",
+          "The caste system was encouraged by regional princes to reinforce social stability.",
+          "The caste system reinforced Indian identity in the face of Muslim invaders.",
+          "The caste system was integral to the Hindu religion, transcending historical eras."
+        ],
+        "gold": "D",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.28966338381871215,
+          0.2556270390121863,
+          0.19908253815691523,
+          0.2556270390121863
+        ],
+        "normalized_entropy": 0.9937272529119412,
+        "max_conditional_probability": 0.28966338381871215,
+        "original_label_probability_mass": 0.9992823347783762,
+        "prompt_sha256": "fb58ca69666479b588de16540796040e5ba05f5e08d7191706cf6d03c83b802e"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/98",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 98,
+        "selection_index": 41,
+        "row_sha256": "37ac450337b5213058fcc9c2d48a10457e9f7b6b4a0a41d2423e6806fba765c1",
+        "question": "This question refers to the following information.\n\"Article 1\nThe Parties undertake, as set forth in the Charter of the United Nations, to settle any international dispute in which they may be involved by peaceful means in such a manner that international peace and security and justice are not endangered, and to refrain in their international relations from the threat or use of force in any manner inconsistent with the purposes of the United Nations.\n\"Article 2\nThe Parties will contribute toward the further development of peaceful and friendly international relations by strengthening their free institutions, by bringing about a better understanding of the principles upon which these institutions are founded, and by promoting conditions of stability and well-being. They will seek to eliminate conflict in their international economic policies and will encourage economic collaboration between any or all of them.\n\"Article 3\nIn order more effectively to achieve the objectives of this Treaty, the Parties, separately and jointly, by means of continuous and effective self-help and mutual aid, will maintain and develop their individual and collective capacity to resist armed attack…\n\"Article 5\nThe Parties agree that an armed attack against one or more of them in Europe or North America shall be considered an attack against them all and consequently they agree that, if such an armed attack occurs, each of them, in exercise of the right of individual or collective self-defence recognised by Article 51 of the Charter of the United Nations, will assist the Party or Parties so attacked by taking forthwith, individually and in concert with the other Parties, such action as it deems necessary, including the use of armed force, to restore and maintain the security of the North Atlantic area.\"\nNorth Atlantic Treaty, April 4, 1949\nThe North Atlantic Treaty in the passage above most clearly supports which of the following concepts?",
+        "choices": [
+          "Capitalism",
+          "Collective defense",
+          "Mutually assured destruction",
+          "Communism"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.014028540805394172,
+          0.983476637784495,
+          0.001016224087487836,
+          0.0014785973226230174
+        ],
+        "normalized_entropy": 0.06699884225216843,
+        "max_conditional_probability": 0.983476637784495,
+        "original_label_probability_mass": 0.9986110315956234,
+        "prompt_sha256": "60c31161c57ec97c3262ba342b4aa9a96c9d5e5c2c1fa75de5d2c2ccf5ee12a4"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/118",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 118,
+        "selection_index": 42,
+        "row_sha256": "f1bcf3a494db85aed07a7b99a1e63a248d6154fa527622840b5eb57f3e7579f1",
+        "question": "This question refers to the following information.\nHe contains all works and desires and all perfumes and all tastes. He enfolds the whole universe and in silence is loving to all. This is the Spirit that is in my heart, this is Brahman. To him I shall come when I go beyond this life, and to him will come he who has faith and doubts not.\n—The Upanishads, India, c. 1000 BCE\nBased on the quotation, what is true of Brahman?",
+        "choices": [
+          "He is found everywhere and contained in everything.",
+          "He resides in a form of paradise, like Heaven.",
+          "He is found only inside the hearts of the faithful.",
+          "He is a vengeful God, punishing those who sin."
+        ],
+        "gold": "A",
+        "prediction": "C",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.20737926808029056,
+          0.1257818842794617,
+          0.6387731156572002,
+          0.028065731983047557
+        ],
+        "normalized_entropy": 0.7023101496482882,
+        "max_conditional_probability": 0.6387731156572002,
+        "original_label_probability_mass": 0.9983599177914038,
+        "prompt_sha256": "0a13fd048dec493f32dee15b5cb9a7b2ddcd13e21b90ee6ced3747a41eda4cf7"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/137",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 137,
+        "selection_index": 43,
+        "row_sha256": "4eb14644071784c1f6fc3ab62d47193ec46763cacd0182b4ecf90306cb279744",
+        "question": "This question refers to the following information.\nThat day the Reverend Xuanzang was chosen from among all the monks. He had been a monk from infancy, and ever since birth he had eaten vegetarian food and observed the prohibitions. His maternal grandfather was an imperial commander, Yin Kaishan. His father Chen Guangrui had come top in the Palace Examination and had been appointed a grand secretary in the Imperial Library. Xuanzang, however, had no interest in honour and glory, and his only joy was to cultivate Nirvana. His virtue was great; of the thousand sutras and ten thousand holy books there was not a single one that he did not know.\n…\nHe looked to the West and prayed, \"I am the believer Chen Xuanzang sent on imperial orders to fetch the scriptures. If I am fated to have a disciple, may I be able to unseal the golden words and release the divine Monkey King to come with me to the Vulture Peak. If I am not fated to have a disciple, and this monkey is an evil monster who has deceived me and will do me no good, then may I be unable to remove the seal.\" When he had prayed he bowed again.\nFrom Wu Chengen, Journey to the West, ca. 1590s\nIn which of the following ways does the excerpt above most complicate historians' understanding of the career of the Chinese monk and traveler Xuanzang?",
+        "choices": [
+          "It highly fictionalizes the story of Xuanzang's accomplishments.",
+          "It was written long after the time period in which Xuanzang lived.",
+          "It casts doubt on the actual existence of Xuanzang.",
+          "It is widely considered by scholars to be a forgery."
+        ],
+        "gold": "A",
+        "prediction": "C",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.06785603153045836,
+          0.30410963486657033,
+          0.5681515959556592,
+          0.05988273764731213
+        ],
+        "normalized_entropy": 0.7461371690551266,
+        "max_conditional_probability": 0.5681515959556592,
+        "original_label_probability_mass": 0.9982332434513019,
+        "prompt_sha256": "23cc5dd321c93198a0b8b8b0f5d41584d55b7e3eaa22c0a5bf140611c701c4dd"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/138",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 138,
+        "selection_index": 44,
+        "row_sha256": "b10ef504eec8806725c6fa68e76f0039ed622664fe46bdca3ca9f949ff631ab1",
+        "question": "This question refers to the following information.\nAs for their men there is no sexual jealousy in them. And none of them derives his genealogy from his father but, on the contrary, from his maternal uncle. A man does not pass on inheritance except to the sons of his sister to the exclusion of his own sons. . . . They are Muslims keeping to the prayers, studying fiqh (Islamic jurisprudence) and learning the Qur'an by heart. With regard to their women, they are not modest in the presence of men; they do not veil themselves in spite of their perseverance in the prayers. He who wishes to marry among them can marry, but the women do not travel with the husband, and if one of them wanted to do that, she would be prevented by her family. The women there have friends and companions amongst men outside the prohibited degrees of marriage [i.e., other than brothers, fathers, etc.]. Likewise for the men, there are companions from amongst women outside the prohibited degrees. One of them would enter his house to find his wife with her companion and would not disapprove of that conduct.\n—Adapted from an account by Ibn Battuta of his travels in Mali during the 1300s\nThe most likely source of Islam in Mali came from",
+        "choices": [
+          "wandering Berber mystics.",
+          "conquering Mughal armies.",
+          "contact with Muslim trade caravans.",
+          "pilgrims to Islamic shrines in Ethiopia."
+        ],
+        "gold": "C",
+        "prediction": "C",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.13230934700108873,
+          0.026053255163157384,
+          0.7613877223130359,
+          0.08024967552271807
+        ],
+        "normalized_entropy": 0.557345860543148,
+        "max_conditional_probability": 0.7613877223130359,
+        "original_label_probability_mass": 0.9991168971026928,
+        "prompt_sha256": "2fa64c77cee6b1d8281a86fbeefb54b68bad64354ffd0b6aca437b73b0ac524a"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/150",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 150,
+        "selection_index": 45,
+        "row_sha256": "866d4376aa4815ca44146ed589d416778a765f7e7acf559ba5a0f8c436c267f5",
+        "question": "This question refers to the following information.\nSeizing me, he led me down to the House of Darkness…\nTo the house where those who enter do not come out,\nAlong the road of no return,\nTo the house where those who dwell, do without light,\nWhere dirt is their drink, their food is of clay…\nWhere light cannot be seen. They dwell in the dark,\nAnd upon the door and bolt, there lies dust.\nfrom Tablet VII, The Epic of Gilgamesh, Sumeria, ca. 2100 B.C.E.\nTruth is good and its worth is lasting.\nIt has not been disturbed since the day of its creator,\nWhereas he who transgresses its ordinances is punished.\nIt lies as a path in front of even him who knows nothing.\nWrongdoing has never yet brought its venture to port…\nThose whom the gods guide cannot lose themselves.\nThose to whom they forbid passage will not be able to cross the river of life.\nfrom The Maxims of Ptahhotep, Egypt, ca. 2400 B.C.E.\nThe tone of the second text best reflects which of the following hypotheses about the influence of religious beliefs on ancient societies?",
+        "choices": [
+          "Ancient Egyptian society held compassion up as the highest virtue.",
+          "Ancient Egyptians believed that moral behavior affected one's fate after death.",
+          "Ancient Egyptian clergy promoted a strict \"eye for an eye\" code of ethics.",
+          "Ancient Egyptian worshippers committed to an elaborate set of rituals and offerings."
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.07249712086334514,
+          0.8831957370860919,
+          0.02077077288590135,
+          0.02353636916466149
+        ],
+        "normalized_entropy": 0.3380674278034096,
+        "max_conditional_probability": 0.8831957370860919,
+        "original_label_probability_mass": 0.9994894940628036,
+        "prompt_sha256": "8453155bfc48aef7149a1145ec6609a9993e8aec0f2b701cf2a12bc85c82f082"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/168",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 168,
+        "selection_index": 46,
+        "row_sha256": "8c22d47c5e2679881751f45433c35b39e45fef54fe53db12dd2995241b4b91c9",
+        "question": "This question refers to the following information.\nIn fact, the peculiar aggravation of the Cawnpore massacres was this, that the deed was done by a subject race — by black men who dared to shed the blood of their masters, and that of poor helpless ladies and children. Here we had not only a servile war, but we had a war of religion, a war of race, and a war of revenge, of hope, of national promptings to shake off the yoke of a stranger, and to re-establish the full power of native chiefs, and the full sway of native religions. Whatever the causes of the mutiny and the revolt, it is clear enough that one of the modes by which the leaders, as if by common instinct, determined to effect their end was, the destruction of every white man, woman or child who fell into their hands.\nBritish journalist William Howard Russell, My Indian Mutlny Diary, 1860\nViolence, it must be emphasized, was an essential component of the British presence in India. A dominant power is always uneasy with violence directed against it. The right to violence is, therefore, everywhere a privilege that authority enjoys and refuses to share with those under it: power always insists on violence as its exclusive monopoly. British rule in India, as an autocracy, had meticulously constructed a monopoly of violence. The revolt of 1857 shattered that monopoly by matching an official, alien violence by an indigenous violence of the colonized. The bodies of the British had acquired certain dignities in India that were predestined by birth and by the colour of their skin. This was the condition of their domination, of their superiority: rulers and ruled were arranged hierarchically as superior and inferior races, as civilized and uncivilized. And this superiority manifested itself by denying to the Indians a \"humanness\"; by treating them and conceiving of them as animals.\nRudrangshu Mukherjee, \"The Kanpur [Cawnpore] Massacres in India in the Revolt of 1857,\" 1990\nFrom the perspective of the first passage, the death of British citizens at Cawnpore",
+        "choices": [
+          "seems to mark a betrayal of a \"higher\" race by a \"lesser\" race.",
+          "should be seen as a regrettable but avoidable mistake.",
+          "can be said to have been brought on by the British themselves.",
+          "was seen by those who killed them as a religious duty."
+        ],
+        "gold": "A",
+        "prediction": "A",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.4372429517146556,
+          0.4372429517146556,
+          0.09756208983986327,
+          0.02795200673082564
+        ],
+        "normalized_entropy": 0.7577592952278867,
+        "max_conditional_probability": 0.4372429517146556,
+        "original_label_probability_mass": 0.998290200156023,
+        "prompt_sha256": "b60ccff1fc674b3c925eb3b67f4c601a3243d4e69ea0c7aa08cf076497362123"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/173",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 173,
+        "selection_index": 47,
+        "row_sha256": "93e2a18108f321a386b69fe3eb1ecd6353a605ccfeb6e3325357dc85fb453d28",
+        "question": "This question refers to the following information.\nEvery two months His Majesty sends from Lima 60,000 pesos to pay for the mita of the Indians. Up on the Huanacavelica range there are 3,000 or 4,000 Indians working in the mercury mine, with picks and hammers, breaking up the ore. And when they have filled up their little sacks, the poor fellows, loaded down, climb up those ladders and rigging, so distressing that a man can hardly get up them. That is the way they work in this mine, with many lights and the loud noise of the pounding and great confusion. Nor is that the greatest evil; that is due to thievish and undisciplined superintendents. According to His Majesty's warrant, the mine owners at Potosí have a right to the mita of 13,300 Indians. These mita Indians earn each day 4 reals. Besides these there are others not under obligation, who hire themselves out voluntarily: these each get from 12 to 16 reals, and some up to 24, according to how well they wield their picks or their reputation for knowing how to get the ore out.\nAntonio Vasquez de Espinosa, report on mining in Huanacavelica and Potosí, 1620s\nThe third principal reason the local Yakut and Tungus natives are ruined is that from the time they first came under Russian control, they have been forced to pay yasak tribute. Some have paid in sables, others in red foxes, still others in cash. At first there were plenty of furbearing animals there, but now there are no sables and not many foxes in those lands, from the shores of the Arctic Ocean all the way south to the great Lena River. Moreover, almost half the natives cannot hunt because they no longer have horses, many of which have been pawned to the yasak collectors.\nHeinrich von Füch, \"On the Treatment of Natives in Northeast Siberia,\" 1744\nWhich of the following factors, not mentioned in the second passage, would have been most likely to create added difficulties for native Siberians attempting to fulfill their tribute obligations?",
+        "choices": [
+          "The arrival of rival hunters from China and Japan",
+          "The impact of epidemic diseases brought by Russian settlers",
+          "The general warming of the climate during this time period",
+          "The reduced demand for furs among European and Asian elites"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.03128523216335171,
+          0.9142885029036091,
+          0.03545081242973851,
+          0.01897545250330061
+        ],
+        "normalized_entropy": 0.27695545535625515,
+        "max_conditional_probability": 0.9142885029036091,
+        "original_label_probability_mass": 0.9984081365431515,
+        "prompt_sha256": "e749feb6f0e42668bb5a08c223e563419d036e7e6cee20ff88b006213e37e536"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/227",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 227,
+        "selection_index": 48,
+        "row_sha256": "7a044d861f389b9ba3067b15b7eaf3cbd333801b5e6b9cf549c9e6fc09b311c1",
+        "question": "This question refers to the following information.\n\"Article 1\nThe Parties undertake, as set forth in the Charter of the United Nations, to settle any international dispute in which they may be involved by peaceful means in such a manner that international peace and security and justice are not endangered, and to refrain in their international relations from the threat or use of force in any manner inconsistent with the purposes of the United Nations.\n\"Article 2\nThe Parties will contribute toward the further development of peaceful and friendly international relations by strengthening their free institutions, by bringing about a better understanding of the principles upon which these institutions are founded, and by promoting conditions of stability and well-being. They will seek to eliminate conflict in their international economic policies and will encourage economic collaboration between any or all of them.\n\"Article 3\nIn order more effectively to achieve the objectives of this Treaty, the Parties, separately and jointly, by means of continuous and effective self-help and mutual aid, will maintain and develop their individual and collective capacity to resist armed attack…\n\"Article 5\nThe Parties agree that an armed attack against one or more of them in Europe or North America shall be considered an attack against them all and consequently they agree that, if such an armed attack occurs, each of them, in exercise of the right of individual or collective self-defence recognised by Article 51 of the Charter of the United Nations, will assist the Party or Parties so attacked by taking forthwith, individually and in concert with the other Parties, such action as it deems necessary, including the use of armed force, to restore and maintain the security of the North Atlantic area.\"\nNorth Atlantic Treaty, April 4, 1949\nThe treaty above is most clearly an example of which of the following?",
+        "choices": [
+          "A reduction of barriers to trade across international borders",
+          "A secret treaty to maintain the balance of power in Europe",
+          "Reconstruction efforts to rebuild Europe after World War II",
+          "A response to aggression from outside of Western Europe"
+        ],
+        "gold": "D",
+        "prediction": "D",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.08646184037218745,
+          0.02807004980917443,
+          0.1615319837474893,
+          0.7239361260711488
+        ],
+        "normalized_entropy": 0.6061549307321086,
+        "max_conditional_probability": 0.7239361260711488,
+        "original_label_probability_mass": 0.9989252190873672,
+        "prompt_sha256": "11e63d9d0be3a8f85bf372adea5835d269a554bcbc6e8edcc4c5ed9ae1e3260b"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_world_history/test/231",
+        "subject": "high_school_world_history",
+        "split": "test",
+        "original_index": 231,
+        "selection_index": 49,
+        "row_sha256": "d3b61a3952f6b4c1e9ef6752abb4a8faae68ace4d2a7439a1a57e5b47805e9b2",
+        "question": "This question refers to the following information.\n\"The struggle against neo-colonialism is not aimed at excluding the capital of the developed world from operating in less developed countries. It is aimed at preventing the financial power of the developed countries being used in such a way as to impoverish the less developed.\nNon-alignment, as practiced by Ghana and many other countries, is based on co-operation with all States whether they be capitalist, socialist or have a mixed economy. Such a policy, therefore, involves foreign investment from capitalist countries, but it must be invested in accordance with a national plan drawn up by the government of the non-aligned State with its own interests in mind. The issue is not what return the foreign investor receives on his investments…The question is one of power. A State in the grip of neo-colonialism is not master of its own destiny.\"\nKwame Nkrumah, Neo-Colonialism, 1965\nWhich of the following is referenced by the co-operation mentioned in the second paragraph?",
+        "choices": [
+          "The competing ideologies of the Cold War",
+          "The competing ideologies of World War II",
+          "The competing empires of World War I",
+          "The competing colonization companies in the Scramble for Africa"
+        ],
+        "gold": "A",
+        "prediction": "A",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.37193851890672736,
+          0.37193851890672736,
+          0.19908434295125235,
+          0.05703861923529298
+        ],
+        "normalized_entropy": 0.8803338380088417,
+        "max_conditional_probability": 0.37193851890672736,
+        "original_label_probability_mass": 0.9989893691378062,
+        "prompt_sha256": "f4576bc3c9ab51a7c0d35049729447855434dfdb6dc94fcc2cb85b64f22ec455"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/6",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 6,
+        "selection_index": 55,
+        "row_sha256": "cc8dde6ce7262f22ef251d6008c35d9ff36b5eea3d14726f274d862496b47155",
+        "question": "Invertebrate immune systems possess which of the following?",
+        "choices": [
+          "Cytotoxic T-lymphocytes",
+          "Phagocytes",
+          "B-cells",
+          "Helper T-cells"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.13934480270878546,
+          0.8018739745554674,
+          0.018858268342143394,
+          0.03992295439360385
+        ],
+        "normalized_entropy": 0.4725869303085749,
+        "max_conditional_probability": 0.8018739745554674,
+        "original_label_probability_mass": 0.9949737441798918,
+        "prompt_sha256": "5f5e8d39da472ebc75ba54139667021e0f5a3cf8842b6df46dce12d59bef2528"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/24",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 24,
+        "selection_index": 56,
+        "row_sha256": "79d3ab5bea7a529b958db592ec8c1b6d6f26f239721363a77af21a69875e409c",
+        "question": "All of the following statements are true EXCEPT",
+        "choices": [
+          "thyroxine increases the rate of metabolism",
+          "insulin decreases storage of glycogen",
+          "vasopressin stimulates water reabsorption in the kidney",
+          "epinephrine increases blood sugar levels and heart rate"
+        ],
+        "gold": "B",
+        "prediction": "D",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.25180578137977483,
+          0.25180578137977483,
+          0.17306341387990265,
+          0.3233250233605477
+        ],
+        "normalized_entropy": 0.9833154920239838,
+        "max_conditional_probability": 0.3233250233605477,
+        "original_label_probability_mass": 0.9982775038479664,
+        "prompt_sha256": "ba96634675ca02ff045144f84b9b11ad1e4c913767771fc871cc697956444b00"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/25",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 25,
+        "selection_index": 57,
+        "row_sha256": "fe55e38daaf86f1fe8b83ac6f7ab928a1cecd33a49502d48d2ae5c2374ef9a73",
+        "question": "Which of the following statements best describes what a Barr body is and its significance?",
+        "choices": [
+          "It is an inactivated Y chromosome and results in a man being sterile.",
+          "It is an inactivated Y chromosome, and the person who has it appears female.",
+          "It is an inactivated X chromosome and results in females with half their cells having one X inactivated and the other half of their cells having the other X inactivated.",
+          "It is an inactivated X chromosome and results in females who are sterile."
+        ],
+        "gold": "C",
+        "prediction": "B",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.09916990315743378,
+          0.8303394330447014,
+          0.06815841121884322,
+          0.002332252579021563
+        ],
+        "normalized_entropy": 0.4189260078968393,
+        "max_conditional_probability": 0.8303394330447014,
+        "original_label_probability_mass": 0.9995076374426274,
+        "prompt_sha256": "cda2a37d21eceb24ff04bad5993f7002abda8a6ec0e109f11548a88ba312b67b"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/31",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 31,
+        "selection_index": 58,
+        "row_sha256": "ccc700b9fca6ee65b332dfedbffb2ec7d44621d3015e18ef99c162bf9f91a00f",
+        "question": "The development of an egg without fertilization is known as",
+        "choices": [
+          "meiosis",
+          "parthenogenesis",
+          "embryogenesis",
+          "vegetative propagation"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.000295952760824685,
+          0.999689340079951,
+          5.770160230851634e-06,
+          8.936998993516735e-06
+        ],
+        "normalized_entropy": 0.0020838428104759223,
+        "max_conditional_probability": 0.999689340079951,
+        "original_label_probability_mass": 0.9986380713417075,
+        "prompt_sha256": "c6297d6e4144023840972dc78485960eceda9da564e1681f597185204766b2e5"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/40",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 40,
+        "selection_index": 59,
+        "row_sha256": "450a092bb0b9a345eaed08959a4efb11b5b865ec4efc3bf63d280506059a72f2",
+        "question": "Two related species evolve in a way that makes them less similar.",
+        "choices": [
+          "Divergent evolution",
+          "Convergent evolution",
+          "Parallel evolution",
+          "Coevolution"
+        ],
+        "gold": "A",
+        "prediction": "B",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.18075727230562877,
+          0.8100978916762579,
+          0.00014546134384442306,
+          0.00899937467426894
+        ],
+        "normalized_entropy": 0.3776166865866897,
+        "max_conditional_probability": 0.8100978916762579,
+        "original_label_probability_mass": 0.991343802431112,
+        "prompt_sha256": "07c3bd71e11b172044ee444a9a69017a7d162726cd106964fed766c9b6beffbe"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/49",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 49,
+        "selection_index": 60,
+        "row_sha256": "8d3e975182212fc73444079de1e1a87e13fe6a5e7c96e756dcce9442dd1851c0",
+        "question": "Which of the following is a biotic factor that could affect the growth rate of a population?",
+        "choices": [
+          "Volcanic eruption",
+          "Glacier melting",
+          "Destruction of the ozone layer",
+          "Sudden reduction in the animal food resource"
+        ],
+        "gold": "C",
+        "prediction": "D",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.20278450921206503,
+          0.12299502215189638,
+          0.12299502215189638,
+          0.5512254464841422
+        ],
+        "normalized_entropy": 0.8420873684165884,
+        "max_conditional_probability": 0.5512254464841422,
+        "original_label_probability_mass": 0.996895023953519,
+        "prompt_sha256": "bd80f10ea206454351bbfd139bef4b3ac56c5b347cafd7bc22375a7f5606505d"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/52",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 52,
+        "selection_index": 61,
+        "row_sha256": "1820b250dcadf044f91fa328d3f3e3c77efd6979f100532b747f0237c1ee33fa",
+        "question": "The Krebs cycle in humans occurs in the",
+        "choices": [
+          "mitochondrial matrix",
+          "inner mitochondrial membrane",
+          "outer mitochondrial membrane",
+          "intermembrane space"
+        ],
+        "gold": "A",
+        "prediction": "B",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.3981658108911205,
+          0.5793278364410747,
+          0.017494184804233353,
+          0.005012167863571501
+        ],
+        "normalized_entropy": 0.5628215733324645,
+        "max_conditional_probability": 0.5793278364410747,
+        "original_label_probability_mass": 0.9988890574030305,
+        "prompt_sha256": "5256b836e1a8e178fc1bc93db301808a20f329f1ca1173be7f2a1b69b500f684"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/93",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 93,
+        "selection_index": 62,
+        "row_sha256": "8526ecea18a057d5b7068a80112c0e4c352cba28b244239257a9591e8d07bacf",
+        "question": "In reference to a segment of DNA, which of the following molecules contains the fewest number of nucleotides?",
+        "choices": [
+          "a single strand of the original DNA segment",
+          "a single strand of the original DNA segment after a point mutation",
+          "the primary RNA transcript (before splicing) from the original DNA",
+          "a single strand of complementary DNA (cDNA) made from the original DNA"
+        ],
+        "gold": "D",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.7158129379005553,
+          0.027755079622791654,
+          0.07544612858606849,
+          0.1809858538905845
+        ],
+        "normalized_entropy": 0.6082039838800128,
+        "max_conditional_probability": 0.7158129379005553,
+        "original_label_probability_mass": 0.997709498722433,
+        "prompt_sha256": "46d6ccd81ab8d3e5c37a40af68d448e0740645adc241074e542f3917fccf1f70"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/94",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 94,
+        "selection_index": 63,
+        "row_sha256": "0f891e0b1ca0bdcf06259cb67960d8ee015d20998cf343bc72eb4abd7b0bb3cc",
+        "question": "All viruses contain at least these two principal components:",
+        "choices": [
+          "DNA and proteins",
+          "nucleic acid and a capsid",
+          "DNA and cell membrane",
+          "RNA and cell wall"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.07520099247332161,
+          0.9161356366451479,
+          0.0007372445885598789,
+          0.007926126292970695
+        ],
+        "normalized_entropy": 0.22974579427778574,
+        "max_conditional_probability": 0.9161356366451479,
+        "original_label_probability_mass": 0.9997228525514709,
+        "prompt_sha256": "80ce82fc107c680a2e014729a8c0c052cdf4330f59ee42f190a6eb7af1063628"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/106",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 106,
+        "selection_index": 64,
+        "row_sha256": "5b689c8c9a661351e76b96de8a96f08d1948321285a91ca7241fb1b3139b51f2",
+        "question": "An eager AP Biology student interested in studying osmosis and the movement of water in solutions took a dialysis bag containing a 0.5 M solution and placed it into a beaker containing a 0.6 M solution. If this bag were instead placed into a beaker of distilled water, what would be the expected result?",
+        "choices": [
+          "There will be a net flow of water out of the bag, causing it to decrease in size.",
+          "There will be a net flow of water into the bag, causing it to swell in size.",
+          "The bag will remain the exact same size because no water will move at all.",
+          "The solute will flow out of the dialysis bag into the beaker."
+        ],
+        "gold": "B",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.3808476994002367,
+          0.17989971488503603,
+          0.05840488631449058,
+          0.3808476994002367
+        ],
+        "normalized_entropy": 0.872678779350688,
+        "max_conditional_probability": 0.3808476994002367,
+        "original_label_probability_mass": 0.9987573498286961,
+        "prompt_sha256": "d26197421d363d8274117075e8b7f9129678ac8136ed314c597240bde979883f"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/113",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 113,
+        "selection_index": 65,
+        "row_sha256": "1cf9f6f1eef596fb842a5a43b85ecc4220598d3307b5aa979475ec5e4ae3fb94",
+        "question": "Which of the following pieces of evidence most strongly supports the common origin of all life on Earth?",
+        "choices": [
+          "All organisms require energy.",
+          "All organisms use essentially the same genetic code.",
+          "All organisms reproduce.",
+          "All organisms show heritable variation."
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.11518135604130324,
+          0.6628229397012524,
+          0.054407820093265856,
+          0.1675878841641785
+        ],
+        "normalized_entropy": 0.7063922895691435,
+        "max_conditional_probability": 0.6628229397012524,
+        "original_label_probability_mass": 0.9766975599252357,
+        "prompt_sha256": "9aed391095a148bf57ea28d0d43e98ee7667ef1153bd6913e32401f4d5df5692"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/116",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 116,
+        "selection_index": 66,
+        "row_sha256": "46dbc1e3083ecc6e2e19f612e33e3b9ff08b910a50db5a3689f9d7ef340a5627",
+        "question": "Which of the following properties is responsible for holding together the water molecules in a vertical column of water in xylem vessels of a plant?",
+        "choices": [
+          "the strong adhesion property of water",
+          "the strong cohesion of property of water",
+          "the high heat capacity of water",
+          "the strong cohesion property of cellulose in the xylem cell wall"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.07095764882975444,
+          0.8644411283342014,
+          0.015832791547139152,
+          0.048768431288905005
+        ],
+        "normalized_entropy": 0.3798663676765306,
+        "max_conditional_probability": 0.8644411283342014,
+        "original_label_probability_mass": 0.9976901265556222,
+        "prompt_sha256": "c2e1c622861a00dbd604e1b3b055e28effd6830a8002d85c5b9e35afadcbc1bd"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/118",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 118,
+        "selection_index": 67,
+        "row_sha256": "afb20c5bdf6f277bff1622335416d9d0b1efa9ff6ac182943e1e697794cb5852",
+        "question": "All of the following organs in the digestive system secrete digestive enzymes EXCEPT the",
+        "choices": [
+          "mouth",
+          "stomach",
+          "gall bladder",
+          "small intestine"
+        ],
+        "gold": "C",
+        "prediction": "D",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.2666584551115272,
+          0.20767381365346843,
+          0.18327149729711636,
+          0.3423962339378881
+        ],
+        "normalized_entropy": 0.9787480049384606,
+        "max_conditional_probability": 0.3423962339378881,
+        "original_label_probability_mass": 0.9984743778819041,
+        "prompt_sha256": "b802b2d28d6a762c1f35126e8bf62da7bbc4c5209e05e729cf10441977e2265a"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/150",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 150,
+        "selection_index": 68,
+        "row_sha256": "cd29357c522d28a864f105b4521264ea320a1d7220e58f188b1b1cb1177d1d18",
+        "question": "Easily produced genetic variation is key to the rapid evolution of viral and microbial populations. Furthermore, pathogens that need to escape the immune system rely on this variation to generate new surface antigens that go unrecognized by the host’s immune system. Which of the following is an example of this antigenic variation?",
+        "choices": [
+          "HIV, which can remain integrated into the host genome for many years",
+          "The flu virus, which changes its envelope proteins",
+          "MRSA, which has become resistant to many antibiotics",
+          "Multiple sclerosis, which attacks the cells of the nervous system"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.041931435078935306,
+          0.9543550635175941,
+          0.0020876432250376002,
+          0.0016258581784329962
+        ],
+        "normalized_entropy": 0.14492368554154772,
+        "max_conditional_probability": 0.9543550635175941,
+        "original_label_probability_mass": 0.9995934649673274,
+        "prompt_sha256": "9afb86f18adcddd06fa0eb0675da4b6dd5a4d00e2d2f15756189bade2c58f130"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/174",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 174,
+        "selection_index": 69,
+        "row_sha256": "a28990071cb8ec20a7d0c8034951af05695f9a841f00d84a7be4a6367222b265",
+        "question": "The pH of two lakes is measured. Lake A has a pH of 8.0; Lake B has a pH of 6.0. Which of the following statements is correct about these lakes?",
+        "choices": [
+          "Lake B is alkaline.",
+          "Lake B is 100 times more alkaline than Lake A.",
+          "The hydrogen ion concentration of Lake B is 104 M.",
+          "The pH of both lakes will decrease in response to acid rain."
+        ],
+        "gold": "D",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.5513389996462448,
+          0.22983228892006202,
+          0.09580835214655153,
+          0.12302035928714168
+        ],
+        "normalized_entropy": 0.8286146541861925,
+        "max_conditional_probability": 0.5513389996462448,
+        "original_label_probability_mass": 0.9985743741056439,
+        "prompt_sha256": "7942efedf6d102839d8aaca924f049f34c79198ec129863a82a982bacf9e4b99"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/220",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 220,
+        "selection_index": 70,
+        "row_sha256": "e3b0e12c855c0eea192cbe42100da2b27bb4b655a5d00186436ef79494511bc2",
+        "question": "A researcher grows a population of ferns in her laboratory. She notices, after a few generations, a new variant that has a distinct phenotype. When she tries to breed the original phenotype with the new one, no offspring are produced. When she breeds the new variants, however, offspring that look like the new variant result. What kind of speciation does this example illustrate?",
+        "choices": [
+          "Allopatric",
+          "Sympatric",
+          "Isolated",
+          "Polyploidy"
+        ],
+        "gold": "B",
+        "prediction": "B",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.4312121740560707,
+          0.553687391473173,
+          0.006150911315143892,
+          0.008949523155612312
+        ],
+        "normalized_entropy": 0.5507877516355995,
+        "max_conditional_probability": 0.553687391473173,
+        "original_label_probability_mass": 0.9985275678371458,
+        "prompt_sha256": "486b4b311ee3fb0569da71c1cebcd3e144d93a465b4010bd820f68bb816b3364"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/225",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 225,
+        "selection_index": 71,
+        "row_sha256": "e01749d4f04c029afb18deeec0250fa7981f2688ae21335937908c553141077b",
+        "question": "Which of the following pairs of scientists pioneered the ecological discipline known as island biogeography?",
+        "choices": [
+          "Robert MacArthur and E. O. Wilson",
+          "James Watson and Francis Crick",
+          "Matthias Schleiden and Theodor Schwann",
+          "Alfred Hershey and Martha Chase"
+        ],
+        "gold": "A",
+        "prediction": "A",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.9828038905382875,
+          0.009635070310700967,
+          0.004016494869463238,
+          0.003544544281548227
+        ],
+        "normalized_entropy": 0.07497445433238835,
+        "max_conditional_probability": 0.9828038905382875,
+        "original_label_probability_mass": 0.9992781749639473,
+        "prompt_sha256": "6d0aa8185958cc7952c6773ac964901d4e7495ef372dbc6a59ae1bfa777a0dd5"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/243",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 243,
+        "selection_index": 72,
+        "row_sha256": "66b991973653c829f236fb31c4b2baf6060efcf9a500e8f886664e07b348e712",
+        "question": "You are told that in a population of guinea pigs, 4 percent are black (recessive) and 96 percent are brown. Which of the following is the frequency of the heterozygous condition?",
+        "choices": [
+          "16 percent",
+          "32 percent",
+          "40 percent",
+          "48 percent"
+        ],
+        "gold": "B",
+        "prediction": "A",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.44653091836709136,
+          0.3068959128423887,
+          0.06043138831111509,
+          0.18614178047940486
+        ],
+        "normalized_entropy": 0.8692738502407095,
+        "max_conditional_probability": 0.44653091836709136,
+        "original_label_probability_mass": 0.9539227430611102,
+        "prompt_sha256": "96f71e1ef48bec72af7dcda5a956a3d89681bdd8bd319ebdd50d467d0b909ede"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/253",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 253,
+        "selection_index": 73,
+        "row_sha256": "289c6f7f0bea6929650fa9be3e026e51f25baceb28426c8f270c3eeac72af541",
+        "question": "Hemoglobin is a molecule that binds to both O2 and CO2. There is an allosteric relationship between the concentrations of O2 and CO2. Hemoglobin's affinity for O2",
+        "choices": [
+          "decreases as blood pH decreases",
+          "increases as H+ concentration increases",
+          "increases in exercising muscle tissue",
+          "decreases as CO2 concentration decreases"
+        ],
+        "gold": "A",
+        "prediction": "D",
+        "correct": false,
+        "error": null,
+        "probabilities": [
+          0.27637003700911594,
+          0.31316827991090124,
+          0.008345651974004628,
+          0.4021160311059782
+        ],
+        "normalized_entropy": 0.8117214238428071,
+        "max_conditional_probability": 0.4021160311059782,
+        "original_label_probability_mass": 0.9981295698322528,
+        "prompt_sha256": "0fcda0e13bad93c5bd33c48b03ec8809a3664be57448a0e9652f0e7f0062b6f0"
+      },
+      {
+        "id": "cais/mmlu@c30699e8356da336a370243923dbaf21066bb9fe/high_school_biology/test/305",
+        "subject": "high_school_biology",
+        "split": "test",
+        "original_index": 305,
+        "selection_index": 74,
+        "row_sha256": "7aced2853dbcaca6fcc93f9703b02c21c15b80e63b1283e2f69dd9d202caab28",
+        "question": "Which is a true statement concerning genetic variation?",
+        "choices": [
+          "It is created by the direct action of natural selection.",
+          "It arises in response to changes in the environment.",
+          "It must be present in a population before natural selection can act upon the population.",
+          "It tends to be reduced by the processes involved when diploid organisms produce gametes."
+        ],
+        "gold": "C",
+        "prediction": "C",
+        "correct": true,
+        "error": null,
+        "probabilities": [
+          0.13041177851812166,
+          0.3128415935294312,
+          0.45518183272079943,
+          0.10156479523164777
+        ],
+        "normalized_entropy": 0.879853410132061,
+        "max_conditional_probability": 0.45518183272079943,
+        "original_label_probability_mass": 0.9976292302977096,
+        "prompt_sha256": "fce116533c12fee6cd90ca2a9e18c17c340c94aebef8c6655f28e4d38f63a39a"
+      }
+    ]
+  },
+  "plot_data": {
+    "accuracy_by_subject": [
+      {
+        "subject": "high_school_psychology",
+        "accuracy": 0.6,
+        "correct_count": 12,
+        "denominator": 20
+      },
+      {
+        "subject": "high_school_world_history",
+        "accuracy": 0.65,
+        "correct_count": 13,
+        "denominator": 20
+      },
+      {
+        "subject": "high_school_biology",
+        "accuracy": 0.45,
+        "correct_count": 9,
+        "denominator": 20
+      }
+    ],
+    "entropy_by_outcome": {
+      "correct": [
+        0.1938796663762966,
+        0.04292170248996707,
+        0.8958739680184296,
+        0.6727586757191146,
+        0.24495144166798602,
+        0.18986679150463048,
+        0.002276480122124586,
+        0.15817117695195138,
+        0.0970109381536542,
+        0.010459814108452176,
+        0.4958423145360559,
+        0.2702902264237564,
+        0.7134136233538191,
+        0.15555533263089916,
+        0.2524204608096864,
+        0.002918179635042718,
+        0.04019497292690952,
+        0.40343206845091795,
+        0.06699884225216843,
+        0.557345860543148,
+        0.3380674278034096,
+        0.7577592952278867,
+        0.27695545535625515,
+        0.6061549307321086,
+        0.8803338380088417,
+        0.4725869303085749,
+        0.0020838428104759223,
+        0.22974579427778574,
+        0.7063922895691435,
+        0.3798663676765306,
+        0.14492368554154772,
+        0.5507877516355995,
+        0.07497445433238835,
+        0.879853410132061
+      ],
+      "incorrect": [
+        0.6801918509858886,
+        0.6901734156263184,
+        0.8384917639857681,
+        0.7174818525607811,
+        0.08418655458936107,
+        0.0021099257414986822,
+        0.7755409238977813,
+        0.6927663638702642,
+        0.8416307297128108,
+        0.19680947526886894,
+        0.604257322162125,
+        0.22405404854051766,
+        0.9937272529119412,
+        0.7023101496482882,
+        0.7461371690551266,
+        0.9833154920239838,
+        0.4189260078968393,
+        0.3776166865866897,
+        0.8420873684165884,
+        0.5628215733324645,
+        0.6082039838800128,
+        0.872678779350688,
+        0.9787480049384606,
+        0.8286146541861925,
+        0.8692738502407095,
+        0.8117214238428071
+      ]
+    },
+    "entropy_by_subject": {
+      "high_school_psychology": [
+        0.1938796663762966,
+        0.6801918509858886,
+        0.6901734156263184,
+        0.04292170248996707,
+        0.8384917639857681,
+        0.8958739680184296,
+        0.6727586757191146,
+        0.24495144166798602,
+        0.7174818525607811,
+        0.08418655458936107,
+        0.18986679150463048,
+        0.002276480122124586,
+        0.15817117695195138,
+        0.0970109381536542,
+        0.0021099257414986822,
+        0.010459814108452176,
+        0.4958423145360559,
+        0.7755409238977813,
+        0.2702902264237564,
+        0.6927663638702642
+      ],
+      "high_school_world_history": [
+        0.7134136233538191,
+        0.15555533263089916,
+        0.2524204608096864,
+        0.002918179635042718,
+        0.8416307297128108,
+        0.04019497292690952,
+        0.19680947526886894,
+        0.40343206845091795,
+        0.604257322162125,
+        0.22405404854051766,
+        0.9937272529119412,
+        0.06699884225216843,
+        0.7023101496482882,
+        0.7461371690551266,
+        0.557345860543148,
+        0.3380674278034096,
+        0.7577592952278867,
+        0.27695545535625515,
+        0.6061549307321086,
+        0.8803338380088417
+      ],
+      "high_school_biology": [
+        0.4725869303085749,
+        0.9833154920239838,
+        0.4189260078968393,
+        0.0020838428104759223,
+        0.3776166865866897,
+        0.8420873684165884,
+        0.5628215733324645,
+        0.6082039838800128,
+        0.22974579427778574,
+        0.872678779350688,
+        0.7063922895691435,
+        0.3798663676765306,
+        0.9787480049384606,
+        0.14492368554154772,
+        0.8286146541861925,
+        0.5507877516355995,
+        0.07497445433238835,
+        0.8692738502407095,
+        0.8117214238428071,
+        0.879853410132061
+      ]
+    },
+    "label_frequencies": {
+      "overall": {
+        "gold_frequencies": {
+          "denominator": 60,
+          "counts": {
+            "A": 13,
+            "B": 20,
+            "C": 11,
+            "D": 16
+          }
+        },
+        "prediction_frequencies": {
+          "denominator": 60,
+          "counts": {
+            "A": 16,
+            "B": 23,
+            "C": 10,
+            "D": 11
+          }
+        }
+      },
+      "high_school_psychology": {
+        "gold_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 3,
+            "B": 4,
+            "C": 5,
+            "D": 8
+          }
+        },
+        "prediction_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 5,
+            "B": 7,
+            "C": 6,
+            "D": 2
+          }
+        }
+      },
+      "high_school_world_history": {
+        "gold_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 6,
+            "B": 6,
+            "C": 2,
+            "D": 6
+          }
+        },
+        "prediction_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 6,
+            "B": 6,
+            "C": 3,
+            "D": 5
+          }
+        }
+      },
+      "high_school_biology": {
+        "gold_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 4,
+            "B": 10,
+            "C": 4,
+            "D": 2
+          }
+        },
+        "prediction_frequencies": {
+          "denominator": 20,
+          "counts": {
+            "A": 5,
+            "B": 10,
+            "C": 1,
+            "D": 4
+          }
+        }
+      }
+    }
+  },
+  "figure_sha256": {
+    "accuracy_by_subject.png": "c7e677476cf88cf7a5c5c6562475b22d2393cc2586214cde17636174ef032391",
+    "entropy_by_outcome.png": "d5bb26a21d8bddcee209f4045c38a5feaf6ce9f1199f537265a83d632d1c0b46",
+    "entropy_by_subject.png": "ff30ec7a307caa3a5f9367e5dada1bd3e9803b33da4542989b1fee326cf87ca3",
+    "label_frequencies.png": "b239ff5e0cafd61bd0e4935d90e98f0a1f34735ec6cadccc1dde7b5d6f908d52"
+  },
+  "code": {
+    "package_version": "0.1.0",
+    "commit": "5db73f95bcc5f14e1c245ecf06bbf94e553cb434",
+    "dirty": true,
+    "source_sha256": {
+      "src/benchmark/__init__.py": "c80bba68bbce5432d6fe899802cc5507cf16b23a69a2c6261a5d4ed6a21fc2a5",
+      "src/benchmark/analysis.py": "8096ff79cb739efe9cec3d23fd819376402694855560b56bc53fc7ad0b89fa63",
+      "src/benchmark/analysis_report.py": "03d778c6c4eb39f03e9982a9fc67156fc815013f550a7f40197286bc045c548f",
+      "src/benchmark/backends/__init__.py": "c8f8c71a7f8b2fc37189a8ca1ee471f6f18b051d051b0485d20a8de5f6ea2f3d",
+      "src/benchmark/backends/base.py": "043b1c1e107f44723618b6c4cacf6830182f5f1d1ee226407c173d51cca04e66",
+      "src/benchmark/backends/mlx.py": "a76d6683076595cdeb67de7ac5a9f835ffb612d72d1ed0ebe418fecc3c3635fe",
+      "src/benchmark/backends/simulated.py": "6503b25efca1d0560794ca8f036b14b267544ebe175797c482e25010a4bc1be2",
+      "src/benchmark/cli.py": "e14ad517fdb0d7311cbd07a3453d237cfdf1e9969cce970910327886c0ba3da1",
+      "src/benchmark/config.py": "13fbbaefe42e77396c5c10e798e654aa702e04d54b47997bf18635231057e05a",
+      "src/benchmark/datasets.py": "e6e7ba056d2984cd15cc141d93793bdd46b7c604c628b3c33201169a9063b571",
+      "src/benchmark/metrics.py": "2d46e0d75e24665cd2c7eb8c296399c2f7d98a2bb5c7d35c473b03a6f479eb02",
+      "src/benchmark/mmlu.py": "cf14a3c8c805b8372687a223b4ac9eee62d345ee41a354e691407fff45afecfd",
+      "src/benchmark/mmlu_selection.py": "969b06b66fcb06c5aceea0dbb3e9e3c810d84be92d68e28e6f41e794d9c55a7d",
+      "src/benchmark/numerics.py": "c4085c9064a1542976acf941b086f61e220a24d7f10a9b6dd0fa5e85c11712fb",
+      "src/benchmark/prompts.py": "fff034d63972296843f92683f895c7a96333f8476254b0c5980bd81177f51a09",
+      "src/benchmark/results.py": "7235e63662a90c6ab7b6b3bb3798cd95dae11267b51bf6d8de02e81370396d7e",
+      "src/benchmark/runner.py": "c9f59c945a8f869b5857765fea9f86ca218003a72f8533bdc013ad64ff51afae",
+      "src/benchmark/schemas.py": "dc3ad0b8ccef1f3a3812ddd8e571889a0dbbbe882d487baca77f85f9c70b4a8f",
+      "src/benchmark/scoring/__init__.py": "14dfaa0c6293c3f45d0a6f88bc66f65d4c6b1171040c1012b84a921827fa0627",
+      "src/benchmark/scoring/normalization.py": "42093a102f553b3a489a426af0fe6f27e649e2d891b0214b5e7f7c716cf956d9",
+      "src/benchmark/storage.py": "01d63584d99ae158f21d87e0517a219983f5289c0e5911d6bd0a875236688300"
+    }
+  },
+  "plotting_versions": {
+    "matplotlib": "3.9.1.post1",
+    "numpy": "1.26.4",
+    "pillow": "10.4.0"
+  }
+}

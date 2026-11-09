@@ -2,7 +2,7 @@
 
 > **Documento vivo:** este arquivo acompanha a implementação e a validação do benchmark. Deve ser atualizado à medida que o projeto evoluir, sem transformar planos ou resultados não verificados em fatos.
 >
-> **Última atualização:** 2026-11-08 — Entrega 3B concluída após aprovação técnica explícita. Diff revisado e 100 testes novamente aprovados (1,033 s); commit local exclusivo autorizado. Entrega 3C autorizada para análise dos 60 test persistidos, sem nova inferência. Sem push ou merge.
+> **Última atualização:** 2026-11-08 — 3B concluída no commit local `5db73f9`; 3C implementada e verificada, aguardando revisão técnica. Somente 60 test analisados, 15 dev separados, quatro PNGs e JSON reproduzíveis; 117 testes aprovados. Sem nova inferência. Commit e publicação na branch de feature autorizados em 2026-11-08; aceite técnico de 3C pendente, sem merge.
 
 ## 1. Objetivo
 
@@ -14,26 +14,30 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 
 ## 2. Estado atual
 
-**Fase atual:** Entrega 3B — Piloto MMLU **concluída e aprovada tecnicamente em
-2026-11-08**. Entregas 1, 2 e 3A permanecem concluídas e aprovadas.
-3A foi fechada em commit local exclusivo `b74da20fef310739af540b312e7a42f9f8c4a557`
-após reexecução dos 86 testes e antes de qualquer implementação de 3B.
+**Fase atual:** Entrega 3C — Análise exploratória implementada e verificada
+localmente, **aguardando revisão técnica**. Entregas 1, 2, 3A e 3B concluídas e
+aprovadas. O commit exclusivo de 3B é `5db73f95bcc5f14e1c245ecf06bbf94e553cb434`,
+criado após revisão e 100 testes aprovados, antes de implementar 3C.
 
-**Evidências atuais:** [relatório do piloto](reports/MMLU_PILOT_VALIDATION.md),
-[JSON com 75 registros](reports/MMLU_PILOT_EVIDENCE.json), 100 testes offline
-aprovados e simulação preservada. Dev: 15 válidas/0 falhas, 6 acertos; auditoria
-técnica aprovada antes de test. Test: 60 válidas/0 falhas, 34 acertos (56,6667%),
-entropia média 0,4785157438890066. Nenhum limiar de acurácia foi usado para avançar.
+**Evidências atuais:** [análise exploratória](reports/MMLU_EXPLORATORY_ANALYSIS.md),
+[JSON com valores e procedência](reports/MMLU_EXPLORATORY_EVIDENCE.json) e quatro
+PNGs em `docs/reports/mmlu_exploratory/`. Acurácia 34/60 (56,6667%); entropia média
+0,346090 nos 34 acertos e 0,651688 nos 26 erros. Quatro erros satisfazem máx. p
+condicional ≥ 0,90, critério descritivo sem alegação de calibração.
 
-**Decisão preservada:** `high_school_biology/dev/2` mantém A/C repetidas,
-com anomalia registrada; dev é exclusivamente técnico, sem exemplos few-shot.
-Modelo, prompt, revisão, seleção, pontuação e fórmulas não foram ajustados pelos resultados.
+**Validação:** 117 testes aprovados (100 anteriores + 17 novos), 1,062 s; quartis,
+médias, dispersão, histogramas e frequências conferidos por referência NumPy/Counter.
+Relatório, JSON e quatro PNGs repetidos byte a byte no ambiente verificado e figuras
+inspecionadas visualmente. Nenhum import de MLX durante a geração dos relatórios.
 
-**Próximo passo autorizado:** iniciar 3C após o commit local exclusivo de 3B.
-Analisar somente os 60 test persistidos; dev fica separado, como evidência técnica.
-Não executar a LLM, ajustar protocolo, criar commit de 3C, fazer push/merge ou
-marcar 3C concluída antes da revisão. Os relatórios anteriores preservam o estado
-histórico anterior aos respectivos aceites.
+**Limites preservados:** somente os 60 test de `mmlu-3a-v1` entram na análise;
+os 15 dev são exclusivamente técnicos. Resultados, dados, fórmulas, prompt, scoring
+e seleção intactos. A anomalia A/C de biologia dev/2 continua documentada em 3B.
+Não inferir calibração, viés de posição ou diferenças cognitivas a partir dessas
+estatísticas; protocolo ajustado com este test exigirá nova amostra independente.
+
+**Próximo passo:** publicar as alterações autorizadas em `codex/feat-mmlu-analysis`;
+o responsável deverá revisar 3C e decidir o aceite antes da integração à main.
 
 ### Legenda de status
 
@@ -223,7 +227,7 @@ cache pode alterar logits em BF16. Fechamento autorizado em commit local; sem pu
 
 ### Entrega 3 — Piloto MMLU com modelo real
 
-**Status:** Em andamento — 3A e 3B concluídas e aprovadas; 3C autorizada, ainda não implementada neste fechamento.
+**Status:** Em andamento — 3A e 3B concluídas e aprovadas; 3C implementada e verificada, aguardando revisão.
 
 #### Entrega 3A — Integração e delimitação do dataset
 
@@ -269,9 +273,33 @@ Evidências em [MMLU_PILOT_VALIDATION.md](reports/MMLU_PILOT_VALIDATION.md) e
 [MMLU_PILOT_EVIDENCE.json](reports/MMLU_PILOT_EVIDENCE.json). Os resultados do modelo
 não foram corrigidos artificialmente; a simulação e as regressões F1/F2/F3 permanecem válidas.
 
-**Critério de conclusão da Entrega 3:** execução real rastreável e auditável, com
-revisão técnica. 3B recebeu aceite em 2026-11-08; 3C está autorizada e não implementada neste fechamento. Resultados
-não são conclusões científicas nem critério para ajustar o protocolo ao test.
+#### Entrega 3C — Análise exploratória dos resultados
+
+**Estado:** implementada e verificada localmente, **aguardando revisão técnica**.
+
+- [x] Encerrar 3B em commit local exclusivo `5db73f9`, após aprovação e reexecução dos 100 testes.
+- [x] Ler somente artefatos test persistidos e aprovados; conferir hashes, schemas, 60 IDs, ordem, conteúdo, prompt e tokens contra 3A/3B. Sem pesos, Parquets ou inferência.
+- [x] Implementar `analysis.py`, leitor compartilhado `results.py` e gerador `analysis_report.py`, preservando fórmulas e módulos experimentais.
+- [x] Calcular acurácia e denominadores gerais/por disciplina; entropia e sua distribuição; entropia por acerto/erro; frequências A–D; descritivas da massa original.
+- [x] Documentar limiar descritivo inclusivo de 0,90 para concentração condicional: quatro erros entre 26; listar todos sem filtro dos agregados.
+- [x] Gerar 12 exemplos pela regra simétrica de extremos de entropia por disciplina/acerto/erro, desempate por ID; preservar todos os 60 registros no JSON.
+- [x] Produzir quatro PNGs científicos com fundo branco, denominadores e legendas; inspeção visual concluída, sem recortes ou valores ilustrativos.
+- [x] Executar 117 testes offline, `OK`, 1,062 s: 100 anteriores e 17 de agregação, vazios, limites, denominadores, exemplos, leitura íntegra e separação dev/test.
+- [x] Conferir descritivas dos quatro grupos (geral + disciplinas) independentemente com NumPy/Counter; repetir Markdown/JSON/PNGs com igualdade byte a byte.
+- [x] Registrar observações, interpretações preliminares e limites, incluindo proibição de tratar a mesma amostra ajustada como validação independente.
+- [ ] Receber revisão e aprovação técnica de 3C.
+- [x] Receber autorização para commit e publicação de 3C na branch de feature em 2026-11-08.
+- [ ] Integrar à main após revisão técnica de 3C.
+
+Evidências: [relatório](reports/MMLU_EXPLORATORY_ANALYSIS.md),
+[JSON](reports/MMLU_EXPLORATORY_EVIDENCE.json), logs e conferências locais em
+`outputs/mmlu-analysis-check/` (ignorados). Dependências gráficas já disponíveis:
+Matplotlib 3.9.1.post1, NumPy 1.26.4, Pillow 10.4.0; nenhum download.
+
+**Critério de conclusão da Entrega 3:** piloto e análise rastreáveis e auditáveis,
+com revisão técnica de cada parte. 3A e 3B aprovadas; 3C aguarda aceite. Resultados
+não são conclusões científicas nem critério para ajustar o protocolo e reutilizar
+a mesma amostra test como validação independente.
 
 ### Entrega 4 — Ampliação e análise experimental
 
@@ -452,3 +480,33 @@ versionado abrangido pelas regras de exclusão. Suíte reexecutada: **100 testes
 OK, 1,033 s**, saída 0. Commit local exclusivo autorizado, sem push ou merge.
 Próximo passo: 3C, somente análise de 60 test persistidos, mantendo dev separado,
 sem nova inferência, alteração de protocolo ou commit de 3C antes de revisão.
+
+### 2026-11-08 — Análise exploratória 3C, aguardando revisão
+
+Após fechamento local de 3B em `5db73f9`, implementação em `codex/feat-mmlu-analysis`.
+Leitor JSON extraído do diagnóstico 3B sem mudança de lógica; agregações reutilizam
+schemas/`summarize`, sem duplicar fórmulas de scoring. Análise exclusivamente dos
+60 test congelados, com 15 dev separados e nenhuma LLM executada. Todos os artefatos
+originais mantiveram seus hashes. 34 acertos/60; entropia média de acertos 0,346090
+e de erros 0,651688; quatro erros com máx. p(A–D) ≥ 0,90. Critério descritivo e
+regra de exemplos simétricos declarados antes da tabulação; nenhuma seleção de
+casos favoráveis ou alegação de calibração, viés de posição ou diferenças cognitivas.
+
+**Evidências:** relatório Markdown, JSON com 60 registros/valores e quatro PNGs
+em `docs/reports/`. 117 testes `OK` (1,062 s); quatro grupos conferidos com referência
+independente NumPy/Counter; segunda geração Markdown/JSON/PNGs idêntica byte a byte;
+figuras inspecionadas. Imports `mlx.core`/`mlx_lm` ausentes na geração. Cache de fontes
+gráficas direcionado a `/tmp`; dependências gráficas preexistentes, sem downloads.
+**Próximo passo:** revisão técnica de 3C. Sem commit de 3C, push ou merge.
+
+
+### 2026-11-08 — Publicação autorizada no GitHub
+
+Usuário autorizou publicar todo o trabalho pendente. A branch
+`codex/feat-mmlu-analysis` reúne os commits exclusivos aprovados de 3A e 3B
+e a implementação, testes, relatórios, evidências e quatro PNGs de 3C.
+A suíte foi reexecutada: **117 testes, OK, 1,074 s**. Diff sem erros de whitespace;
+nenhum arquivo versionado abrangido pelo `.gitignore`. Ambientes, pesos, caches
+e resultados temporários permanecem excluídos. Publicação não equivale ao aceite
+técnico de 3C: revisão ainda pendente, sem marcar a entrega concluída ou integrar
+à main. Próximo passo: revisar o relatório exploratório e decidir o aceite.

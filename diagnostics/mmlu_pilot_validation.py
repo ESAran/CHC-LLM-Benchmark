@@ -8,25 +8,8 @@ from benchmark.config import load_config
 from benchmark.metrics import summarize
 from benchmark.mmlu import canonical_hash, file_hash
 from benchmark.mmlu_selection import DATASET, load_frozen_mmlu
-from benchmark.schemas import (EvaluationRecord, Question, RunMetadata,
-                               ScoringResult, TokenizationEvidence)
-
-
-def read_record(data):
-    question = Question(**{**data['question'], 'choices': tuple(data['question']['choices'])})
-    scoring = data['scoring']
-    if scoring is not None:
-        scoring = dict(scoring)
-        for key in ('labels', 'raw_scores', 'probabilities', 'original_label_probabilities'):
-            if scoring[key] is not None:
-                scoring[key] = tuple(scoring[key])
-        token = scoring['tokenization']
-        if token is not None:
-            scoring['tokenization'] = TokenizationEvidence(**{
-                **token, 'input_ids': tuple(token['input_ids']),
-                'candidate_token_ids': tuple(token['candidate_token_ids'])})
-        scoring = ScoringResult(**scoring)
-    return EvaluationRecord(**{**data, 'question': question, 'scoring': scoring})
+from benchmark.schemas import RunMetadata
+from benchmark.results import read_record
 
 
 def audit_run(directory: Path) -> dict:

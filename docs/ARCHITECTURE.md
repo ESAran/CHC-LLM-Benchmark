@@ -201,6 +201,35 @@ portanto chamadas futuras devem respeitar essa sequência explicitamente.
 Evidências: [validação 3B](reports/MMLU_PILOT_VALIDATION.md). 3B aprovada tecnicamente
 em 2026-11-08; 3C autorizada para análise dos resultados persistidos, sem nova inferência.
 
+### 5.1.3 Análise exploratória em 3C
+
+A análise é posterior à persistência e não faz parte do caminho de inferência.
+`results.py` compartilha a desserialização antes presente no diagnóstico 3B e
+valida os contratos/artefatos. `analysis.py` agrega `EvaluationRecord` usando
+`summarize` existente e estatísticas descritivas da biblioteca padrão. Não importa
+MLX, acessa rede ou duplica fórmulas de scoring. `analysis_report.py` transforma
+as agregações em Markdown, JSON e PNGs via Matplotlib, importado apenas ao renderizar.
+
+O relatório do piloto aceita exclusivamente os 60 test de `mmlu-3a-v1`, vinculados
+aos hashes aprovados de 3A/3B, com IDs/conteúdo/prompt/tokens conferidos. Os 15 dev
+ficam identificados separadamente como excluídos da análise experimental, sem
+carregar seus registros para agregação. Funções puras rejeitam dev/mistos e IDs
+duplicados. Grupos vazios têm n=0 e métricas nulas; falhas técnicas são contadas e
+não entram no denominador válido da acurácia/entropia. Gabaritos contam todos os
+registros; frequências de predição contam somente registros válidos.
+
+O limiar máx. p(A–D) ≥ 0,90 identifica descritivamente erros concentrados, sem
+alegação de calibração e sem excluir outros itens dos agregados. Exemplos seguem
+regra simétrica: mínimo/máximo de entropia por disciplina e acerto/erro, empate por
+ID. Todos os registros e valores usados nas figuras permanecem auditáveis no JSON.
+Quartis usam interpolação inclusiva; dispersão é desvio populacional descritivo.
+
+A análise não infere viés de posição, diferenças cognitivas ou generalização a
+partir desta amostra. Protocolo futuramente otimizado com estes test requer nova
+amostra independente para validação. Não alterar dados ou resultados existentes.
+Implementação e artefatos: [análise 3C](reports/MMLU_EXPLORATORY_ANALYSIS.md),
+aguardando revisão técnica; 3B concluída no commit local `5db73f9`.
+
 ### 5.2 `ModelBackend`
 
 É um **contrato de operações** para executar um modelo, não um modelo nem uma API remota. `backends/base.py` estabelece a interface comum; `backends/mlx.py` implementa a ponte com MLX-LM.
@@ -497,7 +526,8 @@ Executar uma pequena inferência isolada com MLX-LM; inspecionar prompt, tokeniz
 
 - **3A:** preparar adaptador MMLU independente, revisão/partição/IDs, seed, índices e hashes; 15 `dev` + 60 `test` conforme seção 5.1.1. Validar dados, duplicações e orçamento de tokens sem avaliar o modelo.
 - **3B, após revisão e autorização:** conectar a seleção ao Runner, executar validação técnica e piloto com o protocolo já aprovado, revisar logs e persistência.
-- Documentar achados e limitações sem extrapolar para conclusões científicas; não ajustar o protocolo pelos resultados do subconjunto `test`.
+- **3C:** analisar somente os resultados test persistidos, com tabelas, PNGs e evidência auditável, sem nova inferência. Manter dev técnico separado e aguardar revisão.
+- Documentar achados e limitações sem extrapolar para conclusões científicas; protocolo ajustado pelos resultados de test exige nova amostra independente.
 
 ### Entrega 4 — Evolução posterior
 

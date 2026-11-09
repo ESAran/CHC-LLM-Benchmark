@@ -1,6 +1,6 @@
 # LLM Benchmark — Desempenho e Incerteza
 
-> **Estado:** Entregas 1, 2 e 3A concluídas e aprovadas. **3B concluída e aprovada tecnicamente em 2026-11-08:** MMLU dev 15/15 válidas e test 60/60 válidas, sem falhas técnicas; 100 testes offline aprovados. Veja o [relatório do piloto](docs/reports/MMLU_PILOT_VALIDATION.md) e o [roadmap](docs/ROADMAP.md). 3C autorizada após o fechamento local de 3B, sem nova inferência.
+> **Estado:** Entregas 1, 2, 3A e 3B concluídas e aprovadas. **3C implementada e verificada, aguardando revisão técnica:** análise dos 60 test persistidos, quatro gráficos PNG e JSON auditável; 117 testes offline aprovados. Nenhuma nova inferência. Veja a [análise exploratória](docs/reports/MMLU_EXPLORATORY_ANALYSIS.md) e o [roadmap](docs/ROADMAP.md).
 
 ## Visão geral
 
@@ -359,6 +359,35 @@ tokens, escores, probabilidades, massa original, predição, gabarito e entropia
 O [relatório](docs/reports/MMLU_PILOT_VALIDATION.md) e o
 [JSON compacto](docs/reports/MMLU_PILOT_EVIDENCE.json) foram aprovados tecnicamente em 2026-11-08.
 
+## Análise exploratória — Entrega 3C
+
+O módulo `benchmark.analysis` calcula descritivas dos registros `test`, mantendo
+os `dev` fora da análise experimental. `benchmark.results` reconstrói os schemas
+e confere os artefatos; `benchmark.analysis_report` gera Markdown, JSON com todos
+os valores e quatro PNGs. A entrada do relatório exige o piloto de 60 test e os
+hashes aprovados; não depende de pesos, tokenizer, Parquets ou rede.
+
+Com as dependências opcionais de `diagnostics/analysis-requirements.txt` disponíveis:
+
+```sh
+XDG_CACHE_HOME=/tmp/mmlu-analysis-cache MPLBACKEND=Agg MPLCONFIGDIR=/tmp/mmlu-analysis-mpl \
+PYTHONPYCACHEPREFIX=/tmp/mmlu-3c-pycache PYTHONPATH=src \
+  .venv/bin/python -m benchmark.analysis_report \
+  --date 2026-11-08 --output docs/reports
+```
+
+É necessário preservar as pastas de resultados identificadas no JSON de 3B.
+O comando não executa a LLM nem modifica os artefatos originais. Agregações vazias
+têm contagem zero e métricas nulas; dados dev/mistos e IDs duplicados são recusados.
+A acurácia usa registros válidos, com falhas e denominadores explícitos.
+
+O [relatório](docs/reports/MMLU_EXPLORATORY_ANALYSIS.md) mostra 34/60 acertos,
+entropia média 0,346090 nos acertos e 0,651688 nos erros. Lista todos os quatro
+erros com máx. p condicional ≥ 0,90 e 12 exemplos escolhidos por uma regra simétrica.
+Isso não demonstra calibração, viés de posição ou diferenças cognitivas. Os valores
+completos, regras e hashes estão no [JSON](docs/reports/MMLU_EXPLORATORY_EVIDENCE.json).
+A 3C aguarda revisão técnica; commit e publicação na branch de feature autorizados em 2026-11-08.
+
 ## Reprodutibilidade e transparência
 
 Cada execução deverá registrar, no mínimo:
@@ -388,6 +417,6 @@ Pesos dos modelos, caches, credenciais e resultados volumosos não devem ser env
 - **Concluído:** aceite técnico da integração 2B em 2026-11-06, com 71 testes novamente aprovados.
 - **3A concluída e aprovada:** revisão, seed, índices, hashes e orçamento de tokens de 75 questões MMLU; anomalia A/C de biologia mantida por decisão explícita.
 - **3B concluída e aprovada:** fases dev/test sem falhas técnicas, 100 testes novamente aprovados; fechamento em commit local exclusivo autorizado.
-- **Próxima etapa autorizada:** 3C, análise somente dos 60 test persistidos; sem nova inferência, commit de 3C ou envio remoto.
+- **3C aguardando revisão:** análise dos 60 test, quatro PNGs, evidência completa e 117 testes aprovados; sem nova inferência; publicação autorizada na branch de feature, mantendo o aceite técnico pendente.
 
 Consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) antes de alterar contratos, pontuação ou fórmulas.
