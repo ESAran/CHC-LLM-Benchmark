@@ -8,6 +8,8 @@ from .backends.base import ModelBackend
 from .backends.simulated import SimulatedBackend
 from .config import RunConfig
 from .datasets import load_synthetic, load_controlled
+from .mmlu import canonical_hash
+from .mmlu_selection import DATASET, load_frozen_mmlu
 from .metrics import normalized_entropy, summarize
 from .prompts import build_prompt
 from .schemas import EvaluationRecord, RunMetadata
@@ -16,12 +18,23 @@ from .storage import code_metadata, environment_metadata, save_run
 
 
 def run(config: RunConfig, backend: ModelBackend | None = None) -> Path:
-    """Executa fixture controlada; injeção de backend permite testes offline."""
+    """Executa dados configurados; valida origem antes de carregar o backend."""
     started = datetime.now(timezone.utc)
     run_id = f"{started:%Y%m%dT%H%M%S%fZ}_{uuid4().hex}"
     resolved = config.to_dict()
-    loader = load_synthetic if config.dataset_revision == "v1" else load_controlled
-    questions = loader(config.limit, config.seed)
+    origins, prepared = {}, {}
+    dataset_details = {"selection": "seeded_shuffle_then_limit",
+                       "source": "bundled_original_synthetic_fixture", "filters": []}
+    if config.dataset_name == DATASET:
+        items, dataset_details = load_frozen_mmlu(
+            Path(config.selection_manifest), Path(config.dataset_snapshot_path),
+            config.subjects, config.dataset_split)
+        questions = tuple(item.question for item in items)
+        origins = {r['id']: r for r in dataset_details['question_provenance']}
+        prepared = {r['id']: r for r in dataset_details['preparation_records']}
+    else:
+        loader = load_synthetic if config.dataset_revision == "v1" else load_controlled
+        questions = loader(config.limit, config.seed)
     if backend is None:
         if config.backend == "mlx":
             from .backends.mlx import MLXBackend
@@ -47,17 +60,25 @@ def run(config: RunConfig, backend: ModelBackend | None = None) -> Path:
                 prompt, labels = build_prompt(question, config.prompt_template)
                 if config.scoring_method == "label_next_token":
                     prompt = backend.prepare_prompt(prompt)
+                if question.id in prepared and canonical_hash(prompt) != prepared[question.id]['prompt_sha256']:
+                    raise ValueError("Prompt diverge da preparação congelada de 3A.")
                 scoring = score_choices(backend, prompt, labels, config.scoring_method)
+                if question.id in prepared:
+                    evidence = scoring.tokenization
+                    expected = prepared[question.id]
+                    if (evidence is None or len(evidence.input_ids) != expected['input_tokens']
+                            or canonical_hash(evidence.input_ids) != expected['input_ids_sha256']):
+                        raise ValueError("Tokens de entrada divergem da preparação congelada de 3A.")
                 record = EvaluationRecord(
                     question, prompt, config.prompt_template, scoring,
                     scoring.predicted_index == question.correct_index,
-                    normalized_entropy(scoring.probabilities),
+                    normalized_entropy(scoring.probabilities), provenance=origins.get(question.id),
                 )
             except Exception as error:
                 # Falhas por item são evidências explícitas, nunca descartes silenciosos.
                 record = EvaluationRecord(
                     question, prompt, config.prompt_template, None, None, None,
-                    error=f"{type(error).__name__}: {error}",
+                    error=f"{type(error).__name__}: {error}", provenance=origins.get(question.id),
                 )
             records.append(record)
     except BaseException as error:
@@ -83,9 +104,7 @@ def run(config: RunConfig, backend: ModelBackend | None = None) -> Path:
         code=code,
         dataset={
             **resolved["dataset"],
-            "selection": "seeded_shuffle_then_limit",
-            "source": "bundled_original_synthetic_fixture",
-            "filters": [],
+            **dataset_details,
         },
         model={
             **resolved["model"],

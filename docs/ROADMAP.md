@@ -2,7 +2,7 @@
 
 > **Documento vivo:** este arquivo acompanha a implementação e a validação do benchmark. Deve ser atualizado à medida que o projeto evoluir, sem transformar planos ou resultados não verificados em fatos.
 >
-> **Última atualização:** 2026-11-07 — Entrega 3A concluída após aprovação técnica explícita. 86 testes novamente aprovados; seleção e anomalia de biologia preservadas. Fechamento em commit local autorizado. Entrega 3B autorizada, ainda não implementada neste fechamento; sem push ou merge.
+> **Última atualização:** 2026-11-08 — Entrega 3B concluída após aprovação técnica explícita. Diff revisado e 100 testes novamente aprovados (1,033 s); commit local exclusivo autorizado. Entrega 3C autorizada para análise dos 60 test persistidos, sem nova inferência. Sem push ou merge.
 
 ## 1. Objetivo
 
@@ -14,23 +14,26 @@ Para objetivos, contratos e decisões técnicas, consultar [`README.md`](../READ
 
 ## 2. Estado atual
 
-**Fase atual:** Entrega 3A — Integração e delimitação do dataset MMLU,
-**concluída e aprovada tecnicamente** em 2026-11-07. Entregas 1 e 2
-permanecem concluídas e aprovadas; aceite de 2B em 2026-11-06.
+**Fase atual:** Entrega 3B — Piloto MMLU **concluída e aprovada tecnicamente em
+2026-11-08**. Entregas 1, 2 e 3A permanecem concluídas e aprovadas.
+3A foi fechada em commit local exclusivo `b74da20fef310739af540b312e7a42f9f8c4a557`
+após reexecução dos 86 testes e antes de qualquer implementação de 3B.
 
-**Próxima etapa:** Entrega 3B autorizada: integrar a seleção congelada ao Runner,
-validar primeiro 15 `dev` e somente após sucesso técnico executar 60 `test`.
-Nenhum critério de acurácia mínima; nenhuma alteração do protocolo pelos resultados.
+**Evidências atuais:** [relatório do piloto](reports/MMLU_PILOT_VALIDATION.md),
+[JSON com 75 registros](reports/MMLU_PILOT_EVIDENCE.json), 100 testes offline
+aprovados e simulação preservada. Dev: 15 válidas/0 falhas, 6 acertos; auditoria
+técnica aprovada antes de test. Test: 60 válidas/0 falhas, 34 acertos (56,6667%),
+entropia média 0,4785157438890066. Nenhum limiar de acurácia foi usado para avançar.
 
-**Limite da autorização atual:** concluir 3A em commit local exclusivo antes de
-implementar 3B; executar as duas fases controladas e preparar relatório/evidências.
-Não criar commit de 3B, fazer push/merge ou iniciar 3C sem nova autorização.
-O responsável aprovou manter `high_school_biology/dev/2` intacta, com A/C iguais,
-e usar `dev` exclusivamente para validação técnica, sem demonstrações few-shot.
+**Decisão preservada:** `high_school_biology/dev/2` mantém A/C repetidas,
+com anomalia registrada; dev é exclusivamente técnico, sem exemplos few-shot.
+Modelo, prompt, revisão, seleção, pontuação e fórmulas não foram ajustados pelos resultados.
 
-**Evidências:** 86 testes offline (71 anteriores + 15 de MMLU), simulação preservada,
-seis Parquets com hashes conferidos e duas preparações offline idênticas byte a
-byte. Os relatórios anteriores preservam o estado histórico de cada validação.
+**Próximo passo autorizado:** iniciar 3C após o commit local exclusivo de 3B.
+Analisar somente os 60 test persistidos; dev fica separado, como evidência técnica.
+Não executar a LLM, ajustar protocolo, criar commit de 3C, fazer push/merge ou
+marcar 3C concluída antes da revisão. Os relatórios anteriores preservam o estado
+histórico anterior aos respectivos aceites.
 
 ### Legenda de status
 
@@ -212,7 +215,7 @@ validados preservados; suíte reexecutada neste fechamento.
 Evidências em [VALIDATION_DELIVERY_2B.md](reports/VALIDATION_DELIVERY_2B.md) e
 [JSON auditável](reports/VALIDATION_DELIVERY_2B_EVIDENCE.json). A configuração
 `configs/controlled_mlx.yaml` usa somente fixture sintética controlada. O adaptador
-MMLU é preparado separadamente em 3A; a execução pelo Runner aguarda 3B. Limites de 2B: snapshot único aprovado,
+MMLU foi preparado separadamente em 3A e executado em 3B, conforme evidências abaixo. Limites de 2B: snapshot único aprovado,
 entrada até 1024 tokens sem truncamento, batch 1 e caminho completo fixo;
 cache pode alterar logits em BF16. Fechamento autorizado em commit local; sem push ou merge.
 
@@ -220,7 +223,7 @@ cache pode alterar logits em BF16. Fechamento autorizado em commit local; sem pu
 
 ### Entrega 3 — Piloto MMLU com modelo real
 
-**Status:** Em andamento — 3A concluída e aprovada; 3B autorizada, ainda não iniciada neste fechamento.
+**Status:** Em andamento — 3A e 3B concluídas e aprovadas; 3C autorizada, ainda não implementada neste fechamento.
 
 #### Entrega 3A — Integração e delimitação do dataset
 
@@ -244,17 +247,31 @@ A seleção não depende de gabarito, conteúdo ou resultados. Hash do conjunto:
 O [manifesto](reports/MMLU_SELECTION_MANIFEST.json) contém o plano, procedência,
 contagens de tokens e hashes. A preparação não gera acurácia, entropia ou logits.
 
-#### Entrega 3B — Execução do piloto (autorizada; ainda não implementada neste fechamento)
+#### Entrega 3B — Execução do piloto
 
-- [ ] Integrar a seleção congelada ao Runner/configuração, com procedência completa.
-- [ ] Executar validação técnica em `dev` e piloto reservado de `test`, conforme escopo aprovado após revisão de 3A.
-- [ ] Salvar prompt, alternativas, escores, probabilidades, massa original, predição, gabarito, acerto/erro e entropia por questão.
-- [ ] Produzir resumo agregado com acurácia, contagens e estatísticas identificadas.
-- [ ] Revisar integridade dos registros, recursos e falhas, preservando erros legítimos do modelo.
+**Estado:** concluída e aprovada tecnicamente pelo responsável em 2026-11-08.
 
-**Critério de conclusão da Entrega 3:** primeira execução real rastreável e auditável,
-com revisão técnica. O preparo de dados não conclui o piloto; seus resultados não
-serão conclusões científicas nem critério para ajustar o protocolo ao `test`.
+- [x] Integrar a seleção congelada ao Runner/configuração, com disciplina/split/conjunto e procedência por registro.
+- [x] Conferir manifesto fixado por SHA-256, revisão, arquivos, populações, índices, IDs e conteúdo antes de carregar o backend; sem rede ou reamostragem.
+- [x] Preservar prompt/tokenizer, zero-shot, A–D nus, forward completo sem KV cache, promoção de logits e funções matemáticas de 2B.
+- [x] Executar fase 1: 15 dev válidas/0 falhas, tokenização e persistência verificadas. Anomalia A/C de biologia mantida; 6 acertos não usados como critério de avanço.
+- [x] Auditar dev antes de iniciar fase 2; auditoria às 13:59:34 UTC, test iniciado às 13:59:48 UTC em 2026-11-07.
+- [x] Executar fase 2: 60 test válidas/0 falhas, 34 acertos; acurácia 0,5666666666666667 e entropia média 0,4785157438890066. Sem retentativas ou mudanças entre fases.
+- [x] Persistir questões, prompts, procedência, escores, probabilidades, massa original, predições, gabaritos, entropias e metadados completos.
+- [x] Gerar resumos por fase/disciplina e JSON compacto de evidências com 75 registros; validar cálculos e hashes dos artefatos/fontes.
+- [x] Executar 100 testes offline (86 anteriores + 14 novos), `OK`, 1,089 s; simulação de 3 válidas/0 falhas, métricas preservadas.
+- [x] Medir recursos reutilizando snapshots: pico MLX de 1.423.667.128 bytes em dev e 1.541.566.364 bytes em test; sem downloads. Limitações de swap global documentadas.
+- [x] Receber aprovação técnica explícita em 2026-11-08, baseada no relatório e JSON do piloto.
+- [x] Revisar diff completo, conferir hashes e exclusões; reexecutar 100 testes, `OK`, 1,033 s.
+- [x] Receber autorização de commit local exclusivo de 3B e início de 3C; push e merge não autorizados.
+
+Evidências em [MMLU_PILOT_VALIDATION.md](reports/MMLU_PILOT_VALIDATION.md) e
+[MMLU_PILOT_EVIDENCE.json](reports/MMLU_PILOT_EVIDENCE.json). Os resultados do modelo
+não foram corrigidos artificialmente; a simulação e as regressões F1/F2/F3 permanecem válidas.
+
+**Critério de conclusão da Entrega 3:** execução real rastreável e auditável, com
+revisão técnica. 3B recebeu aceite em 2026-11-08; 3C está autorizada e não implementada neste fechamento. Resultados
+não são conclusões científicas nem critério para ajustar o protocolo ao test.
 
 ### Entrega 4 — Ampliação e análise experimental
 
@@ -274,11 +291,11 @@ serão conclusões científicas nem critério para ajustar o protocolo ao `test`
 | --- | --- | --- |
 | Métricas iniciais | Definido | Acurácia e entropia normalizada entre alternativas; sem índice composto. |
 | Arquitetura | Fundação e integração 2B aprovadas | Responsabilidades separadas; contratos de inferência real implementados e testados. |
-| Primeiro dataset | 3A concluída e aprovada | MMLU fixado, três disciplinas, `dev` e `test`; proposta de `validation` substituída pelo pedido atual. |
+| Primeiro dataset | 3A e 3B aprovadas | MMLU fixado, três disciplinas; 15 dev técnicos e 60 test executados sem falhas técnicas. |
 | Primeiro backend | Integração 2B concluída e aprovada | MLX local pelo Runner, com 71 testes offline e duas avaliações controladas. |
-| Primeiro modelo | Executado em diagnóstico | `mlx-community/Qwen2.5-0.5B-Instruct-bf16`, revisão registrada no relatório; sem piloto científico. |
+| Primeiro modelo | Executado em diagnóstico e piloto 3B | `mlx-community/Qwen2.5-0.5B-Instruct-bf16`, revisão fixa; piloto MMLU aprovado tecnicamente, sem conclusões científicas. |
 | Pontuação por rótulos | Protocolo provisório aprovado para 2B | A–D sem espaços, template aprovado e forward completo; integração aceita tecnicamente. |
-| Tamanho da amostra do piloto | Delimitado em 3A | 15 `dev` técnicos + 60 `test` reservados; nenhum avaliado pelo modelo, sem definir amostra final da pesquisa. |
+| Tamanho da amostra do piloto | Executado em 3B | 15 dev técnicos + 60 test, conjuntos separados nos agregados; não define a amostra final da pesquisa. |
 | Resultados por execução | Fluxo nominal e regressões verificados | Publicação de metadados ao final; erro de encerramento não descarta registros calculados. |
 | Aceite da fundação | Concluído em 2026-11-06 | Aprovação técnica explícita; 54 testes continuam passando durante 2A. |
 
@@ -405,3 +422,33 @@ pesos e caches ignorados. Suíte reexecutada: **86 testes, OK, 0,769 s**, saída
 Commit local exclusivo da 3A autorizado; sem push/merge. Relatório original preserva
 o estado histórico anterior ao aceite. Próximo passo autorizado: integrar 3B e
 executar dev antes de test, sem condicionar o avanço à acurácia e sem iniciar 3C.
+
+### 2026-11-07 — Execução controlada 3B, aguardando revisão
+
+Após o commit exclusivo de 3A `b74da20`, implementação em `codex/feat-mmlu-pilot`:
+consumo local da seleção por manifesto/hash, configuração por disciplina/split,
+procedência persistida e conferência de prompts/tokens contra 3A. Backend, scoring,
+prompt e fórmulas preservados. 100 testes passaram (1,089 s) e a simulação manteve
+3 válidas/0 falhas, acurácia 2/3 e entropia média 0,7603746960459724.
+
+Fase 1 dev: 15 válidas, 6 acertos, 0 falhas técnicas; anomalia de biologia intacta.
+A auditoria técnica passou antes de autorizar operacionalmente a fase 2 test:
+60 válidas, 34 acertos, 0 falhas, entropia média 0,4785157438890066. Apenas uma
+execução de cada fase; sem ajustes/retentativas por desempenho. Recálculo independente
+com Decimal em 75 registros: erro máximo 1,1102230246251565e-16 em softmax/entropia.
+Hashes de fonte, conteúdo, prompt, tokens e artefatos conferidos. Snapshots reutilizados,
+sem downloads; recursos e limitações documentados no relatório e JSON de evidências.
+
+**Próximo passo:** responsável revisar 3B. Sem commit de 3B, push, merge ou início de 3C.
+
+### 2026-11-08 — Aceite e fechamento local exclusivo de 3B
+
+Aprovação técnica explícita do responsável com base no relatório e JSON do piloto.
+Diff completo revisado: integração/configuração/procedência, auditoria, testes,
+relatórios e documentação dentro do escopo; backend, prompt, scoring e fórmulas
+preservados. Hashes dos fontes e oito arquivos das duas execuções conferidos.
+Ambientes, caches, pesos e saídas temporárias ignorados; nenhum arquivo já
+versionado abrangido pelas regras de exclusão. Suíte reexecutada: **100 testes,
+OK, 1,033 s**, saída 0. Commit local exclusivo autorizado, sem push ou merge.
+Próximo passo: 3C, somente análise de 60 test persistidos, mantendo dev separado,
+sem nova inferência, alteração de protocolo ou commit de 3C antes de revisão.

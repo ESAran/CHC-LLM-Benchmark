@@ -148,10 +148,24 @@ class EvaluationRecord:
     correct: bool | None
     normalized_entropy: float | None
     error: str | None = None
+    provenance: dict[str, object] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.question, Question):
             raise ValueError("O registro deve conter uma Question válida.")
+        if self.provenance is not None:
+            origin = self.provenance
+            texts = {"id", "dataset", "revision", "subject", "split", "source_file", "selection_id"}
+            hashes = {"source_sha256", "row_sha256"}
+            indices = {"original_index", "selection_index", "execution_index"}
+            if (not isinstance(origin, dict) or set(origin) != texts | hashes | indices | {"anomalies"}
+                    or any(not _text(origin[k]) for k in texts)
+                    or any(not isinstance(origin[k], str) or not re.fullmatch(r"[0-9a-f]{64}", origin[k]) for k in hashes)
+                    or any(type(origin[k]) is not int or origin[k] < 0 for k in indices)
+                    or origin['id'] != self.question.id or origin['subject'] != self.question.subject
+                    or not isinstance(origin['anomalies'], list)
+                    or any(not _text(item) for item in origin['anomalies'])):
+                raise ValueError("Procedência da questão ausente ou inconsistente.")
         if not isinstance(self.prompt, str):
             raise ValueError("O prompt deve ser texto.")
         if not _text(self.prompt_template):
@@ -266,6 +280,19 @@ class RunMetadata:
                     scoring=replace(record.scoring) if record.scoring is not None else None)
         if tuple(record.question.id for record in records) != self.question_ids:
             raise ValueError("IDs/ordem dos registros incompatíveis com os metadados.")
+        origins = self.dataset.get("question_provenance")
+        if self.dataset['name'] == 'cais/mmlu' and origins is None:
+            raise ValueError("MMLU exige procedência explícita por questão.")
+        if origins is not None:
+            if origins != [r.provenance for r in records] or any(
+                    r.provenance is None or r.provenance['execution_index'] != i
+                    or r.provenance['dataset'] != self.dataset['name']
+                    or r.provenance['revision'] != self.dataset['revision']
+                    or r.provenance['split'] != self.dataset.get('split')
+                    for i, r in enumerate(records)):
+                raise ValueError("Procedência/ordem incompatível com os metadados do dataset.")
+        elif any(r.provenance is not None for r in records):
+            raise ValueError("Procedência dos registros deve constar nos metadados.")
         expected = summarize(records)
         if self.valid_count != expected["valid_count"] or self.failed_count != expected["failed_count"]:
             raise ValueError("Contagens incompatíveis com os registros.")

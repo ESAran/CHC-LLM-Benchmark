@@ -1,0 +1,31 @@
+version: 1
+experiment:
+  name: delivery_3b_mmlu_test
+dataset:
+  name: cais/mmlu
+  revision: c30699e8356da336a370243923dbaf21066bb9fe
+  split: test
+  limit: 60
+  seed: 42
+  subjects:
+  - high_school_psychology
+  - high_school_world_history
+  - high_school_biology
+  selection_id: mmlu-3a-v1
+  selection_manifest: docs/reports/MMLU_SELECTION_MANIFEST.json
+  snapshot_path: .cache/mmlu/huggingface/datasets--cais--mmlu/snapshots/c30699e8356da336a370243923dbaf21066bb9fe
+model:
+  backend: mlx
+  name: mlx-community/Qwen2.5-0.5B-Instruct-bf16
+  revision: 56d07e766edd7159fbe12ed12d9cf114bf38bf1e
+  snapshot_path: .cache/mlx-diagnostic/huggingface/hub/models--mlx-community--Qwen2.5-0.5B-Instruct-bf16/snapshots/56d07e766edd7159fbe12ed12d9cf114bf38bf1e
+  max_prompt_tokens: 1024
+prompt:
+  template: current-no-enumeration-v1
+scoring:
+  method: label_next_token
+metrics:
+- accuracy
+- normalized_entropy
+output:
+  directory: outputs/mmlu-pilot-test

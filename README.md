@@ -1,6 +1,6 @@
 # LLM Benchmark — Desempenho e Incerteza
 
-> **Estado:** Entregas 1 e 2 concluídas e aprovadas. **Entrega 3A concluída e aprovada tecnicamente em 2026-11-07:** seleção MMLU com 15 questões de `dev` e 60 de `test`, sem avaliação pelo modelo. Suíte atual: 86 testes offline aprovados. A Entrega 3B foi autorizada e será iniciada após o fechamento local de 3A. Veja a [validação 3A](docs/reports/MMLU_DATASET_VALIDATION.md) e o [roadmap](docs/ROADMAP.md).
+> **Estado:** Entregas 1, 2 e 3A concluídas e aprovadas. **3B concluída e aprovada tecnicamente em 2026-11-08:** MMLU dev 15/15 válidas e test 60/60 válidas, sem falhas técnicas; 100 testes offline aprovados. Veja o [relatório do piloto](docs/reports/MMLU_PILOT_VALIDATION.md) e o [roadmap](docs/ROADMAP.md). 3C autorizada após o fechamento local de 3B, sem nova inferência.
 
 ## Visão geral
 
@@ -229,7 +229,7 @@ erros combinados e inconsistências entre contratos.
   a própria escrita são reportadas como erros, sem prometer persistência.
 
 Na Entrega 1 não havia backend real. A integração MLX da Entrega 2B está descrita
-abaixo; backend Transformers, APIs e pontuação de sequências continuam fora do escopo. O adaptador MMLU de 3A prepara dados separadamente, sem execução pelo Runner. Na simulação, a massa original dos rótulos no vocabulário
+abaixo; backend Transformers, APIs e pontuação de sequências continuam fora do escopo. O adaptador MMLU preparado em 3A está conectado ao Runner em 3B, descrita abaixo. Na simulação, a massa original dos rótulos no vocabulário
 permanece nula, pois o backend simulado não fornece essa evidência. A Entrega 1 valida
 apenas contratos, matemática e fluxo; **o MVP com modelo real ainda não está validado**.
 
@@ -307,7 +307,7 @@ O adaptador independente `src/benchmark/mmlu.py` preserva texto, quatro alternat
 gabarito, disciplina e posição original. `configs/mmlu_selection.json` fixa revisão,
 seed 42, arquivos e hashes. O script `diagnostics/mmlu_dataset.py` prepara 15 questões
 de `dev` e 60 de `test` e conta tokens com o tokenizer local aprovado em 2B.
-Não carrega pesos nem executa avaliação. A configuração do Runner ainda não aceita MMLU.
+O script de preparação não carrega pesos nem executa avaliação. O consumo pelo Runner foi acrescentado separadamente em 3B.
 
 As dependências opcionais estão em `diagnostics/mmlu-requirements.txt`; use um
 ambiente separado do núcleo. Com essas dependências instaladas e o snapshot local
@@ -329,7 +329,35 @@ manifesto final não devem ser consumidas. Os artefatos de trabalho ficam ignora
 A seleção verificada tem entradas de 72 a 574 tokens, nenhuma acima do limite de
 1024. Há alternativas A/C idênticas em `high_school_biology/dev/2`; o conteúdo foi
 preservado e sinalizado. Consulte o [relatório](docs/reports/MMLU_DATASET_VALIDATION.md)
-e o [manifesto auditável](docs/reports/MMLU_SELECTION_MANIFEST.json) antes de aprovar 3B.
+e o [manifesto auditável](docs/reports/MMLU_SELECTION_MANIFEST.json). A 3A foi aprovada com essa anomalia preservada e uso exclusivamente técnico de dev.
+
+## Piloto MMLU pelo Runner — Entrega 3B
+
+`configs/mmlu_dev.yaml` e `configs/mmlu_test.yaml` usam `mmlu-3a-v1`, revisão e
+índices congelados. `dataset.subjects` permite uma ou mais disciplinas na ordem
+aprovada; `limit` deve ser exatamente 5 por disciplina em dev ou 20 em test.
+O manifesto e todos os Parquets selecionados são verificados antes da carga do
+modelo. Não há download automático nem seleção por resultado.
+
+Use o ambiente MLX de 2B com as dependências MMLU de 3A e os snapshots locais:
+
+```sh
+HF_HUB_OFFLINE=1 PYTHONPATH=src python -m benchmark.cli --config configs/mmlu_dev.yaml
+```
+
+Antes de executar test, audite a pasta retornada com
+`diagnostics/mmlu_pilot_validation.py --run <pasta-dev> --output <evidencia-dev.json>`
+usando o mesmo `PYTHONPATH=src`. A auditoria não exige acurácia mínima e retorna erro
+se houver falha técnica ou persistência incompleta. Só após sucesso técnico executar
+a CLI com `configs/mmlu_test.yaml`. A CLI individual não automatiza essa sequência.
+
+Na validação de 3B, dev teve 15 válidas/0 falhas (6 acertos) e test teve 60 válidas/0
+falhas (34 acertos, acurácia 56,6667%, entropia média 0,4785157438890066). Dev permaneceu
+exclusivamente técnico; o item de biologia com A/C iguais foi preservado. Nenhum
+parâmetro foi ajustado entre as fases. Os registros incluem procedência, prompt,
+tokens, escores, probabilidades, massa original, predição, gabarito e entropia.
+O [relatório](docs/reports/MMLU_PILOT_VALIDATION.md) e o
+[JSON compacto](docs/reports/MMLU_PILOT_EVIDENCE.json) foram aprovados tecnicamente em 2026-11-08.
 
 ## Reprodutibilidade e transparência
 
@@ -359,6 +387,7 @@ Pesos dos modelos, caches, credenciais e resultados volumosos não devem ser env
 - **Protocolo provisório aprovado para 2B:** prompt sem enumeração, chat template do snapshot, zero-shot, rótulos nus e forward completo sem cache.
 - **Concluído:** aceite técnico da integração 2B em 2026-11-06, com 71 testes novamente aprovados.
 - **3A concluída e aprovada:** revisão, seed, índices, hashes e orçamento de tokens de 75 questões MMLU; anomalia A/C de biologia mantida por decisão explícita.
-- **Próxima etapa autorizada:** 3B, validar 15 `dev` e, se houver sucesso técnico, executar 60 `test`; sem commit de 3B ou envio remoto.
+- **3B concluída e aprovada:** fases dev/test sem falhas técnicas, 100 testes novamente aprovados; fechamento em commit local exclusivo autorizado.
+- **Próxima etapa autorizada:** 3C, análise somente dos 60 test persistidos; sem nova inferência, commit de 3C ou envio remoto.
 
 Consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) antes de alterar contratos, pontuação ou fórmulas.

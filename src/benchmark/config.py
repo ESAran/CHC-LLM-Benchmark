@@ -7,6 +7,7 @@ import yaml
 
 from .prompts import TEMPLATE, CURRENT_TEMPLATE, TEMPLATES
 from .backends.mlx import MODEL, REVISION
+from .mmlu_selection import DATASET, REVISION as MMLU_REVISION, SELECTION_ID, validate_scope
 
 
 def _fields(value: object, expected: set[str], location: str) -> Mapping:
@@ -26,13 +27,35 @@ class RunConfig:
     prompt_template: str = TEMPLATE
     snapshot_path: str | None = None
     max_prompt_tokens: int = 1024
+    dataset_name: str = "synthetic"
+    dataset_split: str = "synthetic"
+    subjects: tuple[str, ...] = ()
+    selection_id: str | None = None
+    selection_manifest: str | None = None
+    dataset_snapshot_path: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.experiment_name, str) or not self.experiment_name.strip():
             raise ValueError("experiment.name deve ser texto não vazio.")
-        if self.backend not in ("simulated", "mlx") or self.dataset_revision not in ("v1", "controlled-v1"):
-            raise ValueError("Backend ou revisão de fixture não suportado.")
-        maximum = 3 if self.dataset_revision == "v1" else 16
+        if self.backend not in ("simulated", "mlx"):
+            raise ValueError("Backend não suportado.")
+        if self.dataset_name == DATASET:
+            maximum = validate_scope(self.subjects, self.dataset_split)
+            if (self.dataset_revision != MMLU_REVISION or self.selection_id != SELECTION_ID
+                    or type(self.seed) is not int or self.seed != 42
+                    or self.backend != "mlx" or self.prompt_template != CURRENT_TEMPLATE
+                    or self.max_prompt_tokens != 1024
+                    or type(self.limit) is not int or self.limit != maximum
+                    or any(not isinstance(v, str) or not v.strip() for v in
+                           (self.selection_manifest, self.dataset_snapshot_path))):
+                raise ValueError("MMLU exige conjunto completo por disciplina/split e protocolo congelado de 3A/2B.")
+        else:
+            if (self.dataset_name != "synthetic" or self.dataset_split != "synthetic"
+                    or self.dataset_revision not in ("v1", "controlled-v1")
+                    or self.subjects != () or any(v is not None for v in
+                        (self.selection_id, self.selection_manifest, self.dataset_snapshot_path))):
+                raise ValueError("Revisão ou opções da fixture não suportadas.")
+            maximum = 3 if self.dataset_revision == "v1" else 16
         if type(self.limit) is not int or not 1 <= self.limit <= maximum:
             raise ValueError(f"dataset.limit deve ser inteiro entre 1 e {maximum}.")
         if type(self.seed) is not int:
@@ -44,13 +67,13 @@ class RunConfig:
         if type(self.max_prompt_tokens) is not int or not 1 <= self.max_prompt_tokens <= 1024:
             raise ValueError("max_prompt_tokens deve estar entre 1 e 1024 nesta integração inicial.")
         if self.backend == "mlx":
-            if self.dataset_revision != "controlled-v1" or self.prompt_template != CURRENT_TEMPLATE:
+            if (self.dataset_name == "synthetic" and self.dataset_revision != "controlled-v1") or self.prompt_template != CURRENT_TEMPLATE:
                 raise ValueError("MLX exige fixture de quatro opções e template aprovado nesta etapa.")
             if not isinstance(self.snapshot_path, str) or not self.snapshot_path.strip():
                 raise ValueError("MLX exige snapshot_path local explícito.")
         elif self.snapshot_path is not None or self.max_prompt_tokens != 1024:
             raise ValueError("Opções de inferência MLX não se aplicam à simulação.")
-        if self.prompt_template == CURRENT_TEMPLATE and self.dataset_revision != "controlled-v1":
+        if self.prompt_template == CURRENT_TEMPLATE and self.dataset_name == "synthetic" and self.dataset_revision != "controlled-v1":
             raise ValueError("O template aprovado exige fixture de quatro opções.")
 
     @property
@@ -62,11 +85,16 @@ class RunConfig:
         if self.backend == "mlx":
             model = {"backend": "mlx", "name": MODEL, "revision": REVISION,
                      "snapshot_path": self.snapshot_path, "max_prompt_tokens": self.max_prompt_tokens}
+        dataset = {"name": self.dataset_name, "revision": self.dataset_revision,
+                   "split": self.dataset_split, "limit": self.limit, "seed": self.seed}
+        if self.dataset_name == DATASET:
+            dataset.update(subjects=list(self.subjects), selection_id=self.selection_id,
+                           selection_manifest=self.selection_manifest,
+                           snapshot_path=self.dataset_snapshot_path)
         return {
             "version": 1,
             "experiment": {"name": self.experiment_name},
-            "dataset": {"name": "synthetic", "revision": self.dataset_revision, "split": "synthetic",
-                        "limit": self.limit, "seed": self.seed},
+            "dataset": dataset,
             "model": model,
             "prompt": {"template": self.prompt_template},
             "scoring": {"method": self.scoring_method},
@@ -83,11 +111,18 @@ class RunConfig:
                 fields = set(expected)
                 if section == "model" and isinstance(data[section], Mapping) and data[section].get("backend") == "mlx":
                     fields |= {"snapshot_path", "max_prompt_tokens"}
+                if section == "dataset" and isinstance(data[section], Mapping) and data[section].get("name") == DATASET:
+                    fields |= {"subjects", "selection_id", "selection_manifest", "snapshot_path"}
                 _fields(data[section], fields, section)
+        if "subjects" in data["dataset"] and not isinstance(data["dataset"]["subjects"], list):
+            raise ValueError("dataset.subjects deve ser uma lista de disciplinas.")
         config = cls(data["experiment"]["name"], data["dataset"]["limit"], data["dataset"]["seed"],
                      data["output"]["directory"], data["model"]["backend"], data["dataset"]["revision"],
                      data["prompt"]["template"], data["model"].get("snapshot_path"),
-                     data["model"].get("max_prompt_tokens", 1024))
+                     data["model"].get("max_prompt_tokens", 1024),
+                     data["dataset"]["name"], data["dataset"]["split"],
+                     tuple(data["dataset"].get("subjects", ())), data["dataset"].get("selection_id"),
+                     data["dataset"].get("selection_manifest"), data["dataset"].get("snapshot_path"))
         for section, expected in config.to_dict().items():
             if data[section] != expected:
                 raise ValueError(f"{section}: valor incompatível com o protocolo suportado.")

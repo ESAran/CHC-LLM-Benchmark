@@ -144,8 +144,8 @@ O dataset adapter deve acrescentar ou associar proveniência: nome/configuraçã
 O pedido de 3A **substitui a proposta inicial de até 20 questões de `validation`**:
 `high_school_psychology`, `high_school_world_history` e `high_school_biology`,
 5 questões de `dev` e 20 de `test` por disciplina. Em 3A somente a preparação está
-autorizada; `dev` não será usado como demonstração few-shot. A execução em 3B
-aguarda revisão técnica. O subconjunto de `test` fica congelado para o piloto,
+autorizada; `dev` não será usado como demonstração few-shot. A preparação foi aprovada
+em 2026-11-07, incluindo a anomalia de biologia; 3B foi então autorizada. O subconjunto de `test` fica congelado para o piloto,
 sem escolha de prompt ou ajuste de pontuação pelos seus resultados.
 
 `src/benchmark/mmlu.py` é um módulo de dataset separado, preservando `datasets.py`
@@ -169,9 +169,37 @@ linhas, prompts, tokens e fontes; a saída JSONL preserva os 75 conteúdos compl
 Somente o manifesto final indica preparação persistida; isso não representa uma
 execução experimental nem substitui os metadados de avaliação do Runner.
 
-O Runner/configuração de experimento continuam com fixtures simuladas/controladas.
-Conectar MMLU a esse fluxo é trabalho de 3B, ainda não iniciado. Evidências e
-limitações: [validação 3A](reports/MMLU_DATASET_VALIDATION.md).
+A preparação de 3A permanece separada da execução. O consumo pelo Runner foi
+implementado em 3B, descrito abaixo. Evidências da preparação:
+[validação 3A](reports/MMLU_DATASET_VALIDATION.md).
+
+### 5.1.2 Consumo da seleção pelo Runner em 3B
+
+A execução usa `mmlu_selection.py`, sem modificar o adaptador de 3A. O manifesto
+aprovado é fixado por SHA-256; o carregador lê somente os arquivos locais necessários
+à disciplina/split, confere hashes e conteúdo e retorna as posições congeladas.
+Não reamostra, acessa rede, filtra anomalias ou conhece o modelo. Configurações
+MMLU exigem revisão aprovada, seed 42, `mmlu-3a-v1`, quantidade integral por estrato
+e o protocolo de 2B; os caminhos de snapshot e manifesto são configuráveis.
+
+`EvaluationRecord.provenance` é opcional para manter fixtures anteriores e
+obrigatório no conjunto MMLU persistido: ID, disciplina, split, revisão, índices
+originais/seleção/execução, hashes e anomalias. O schema valida estrutura/identidade;
+`RunMetadata.validate_records` confere coerência e ordem antes da gravação.
+Textos, alternativas e gabaritos continuam em `Question` sem mudanças.
+
+O Runner carrega e verifica os dados antes do backend, aplica os módulos existentes
+e compara hash do prompt e dos tokens com 3A. Erros são registros explícitos,
+sem retentativa por desempenho. Backend, scoring, métricas e persistência mantêm
+suas responsabilidades. O resumo por disciplina usa `summarize` existente no
+script de auditoria; não altera a fórmula ou o resumo geral de cada execução.
+
+A validação autorizada foi sequencial: dev 15 → auditoria técnica → test 60.
+Acurácia não é condição de avanço. `diagnostics/mmlu_pilot_validation.py` apenas
+audita saídas; não executa modelo. A CLI aceita cada configuração individualmente,
+portanto chamadas futuras devem respeitar essa sequência explicitamente.
+Evidências: [validação 3B](reports/MMLU_PILOT_VALIDATION.md). 3B aprovada tecnicamente
+em 2026-11-08; 3C autorizada para análise dos resultados persistidos, sem nova inferência.
 
 ### 5.2 `ModelBackend`
 
@@ -259,7 +287,8 @@ A decisão de prosseguir com `label_next_token` depende dos resultados desse dia
 
 O responsável aprovou explicitamente a [comparação de prompts](reports/PROMPT_COMPARISON.md)
 e autorizou a integração ao Runner. Após revisar as evidências, aprovou
-tecnicamente a Entrega 2B em 2026-11-06; o piloto MMLU ainda requer autorização.
+tecnicamente a Entrega 2B em 2026-11-06. Após o aceite de 3A, o piloto 3B foi autorizado
+e executado em 2026-11-07, mantendo este protocolo.
 
 - Modelo: `mlx-community/Qwen2.5-0.5B-Instruct-bf16`, revisão
   `56d07e766edd7159fbe12ed12d9cf114bf38bf1e`, snapshot local e hashes conferidos.
@@ -345,7 +374,7 @@ Separar **métricas por questão** (acerto, entropia) de **agregados por execuç
 
 ## 8. Configuração dos experimentos
 
-Usar um arquivo YAML versionável e validado. O exemplo abaixo é **histórico e não executável**, anterior às decisões de 2B/3A: `validation`, limite 20 e template ilustrativo foram superados. A preparação atual está em `configs/mmlu_selection.json`; a configuração de execução MMLU será definida somente em 3B. Não usar este YAML para o piloto:
+Usar um arquivo YAML versionável e validado. O exemplo abaixo é **histórico e não executável**, anterior às decisões de 2B/3A: `validation`, limite 20 e template ilustrativo foram superados. A preparação atual está em `configs/mmlu_selection.json`; as configurações de execução de 3B são `configs/mmlu_dev.yaml` e `configs/mmlu_test.yaml`. Não usar este YAML para o piloto:
 
 ```yaml
 experiment:
